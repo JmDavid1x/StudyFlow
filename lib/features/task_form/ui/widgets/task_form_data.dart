@@ -90,4 +90,33 @@ class TaskFormData {
   final String place;
   final bool reminder;
   final String notes;
+
+  /// Carga en el formulario una tarea de [DemoData] (por ejemplo, la que
+  /// llega desde Detalle de tarea). DemoTask no trae fecha exacta, así que
+  /// la fecha queda por elegir.
+  factory TaskFormData.fromDemoTask(DemoTask task) {
+    return TaskFormData(
+      title: task.title,
+      subject: DemoData.subjects.where((s) => s.name == task.subject).firstOrNull,
+      kind: task.isExam ? TaskKind.exam : TaskKind.task,
+      priority: TaskPriority.values.firstWhere(
+        (p) => p.label.toLowerCase() == task.priority,
+        orElse: () => TaskPriority.medium,
+      ),
+    );
+  }
 }
+
+/// Tarea del prototipo (Figma 15 y 19), para cuando una pantalla se abre
+/// sin argumentos, por ejemplo desde el menú de desarrollo.
+final prototypeTask = TaskFormData(
+  title: 'Prototipo flujo principal',
+  subject: DemoData.subjects.first,
+  kind: TaskKind.project,
+  date: DateTime(2026, 9, 23),
+  time: const TimeOfDay(hour: 23, minute: 59),
+  gradePart: demoGradeParts[1],
+  priority: TaskPriority.high,
+  channel: DeliveryChannel.intu,
+  notes: 'Solo el flujo principal. Enlazar las pantallas en Figma.',
+);

@@ -1,8 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/navigation/placeholder_screen.dart';
-import 'package:studyflow/core/navigation/team.dart';
+import 'package:studyflow/features/task_form/ui/screens/edit_task_screen.dart';
 import 'package:studyflow/features/task_form/ui/screens/new_task_screen.dart';
 import 'package:studyflow/features/task_form/ui/screens/task_saved_screen.dart';
 
@@ -13,5 +12,5 @@ import 'package:studyflow/features/task_form/ui/screens/task_saved_screen.dart';
 final Map<String, WidgetBuilder> taskFormRoutes = {
   AppRoutes.newTask: (_) => const NewTaskScreen(),
   AppRoutes.taskSaved: (_) => const TaskSavedScreen(),
-  AppRoutes.editTask: (_) => const PlaceholderScreen(figma: '19', title: 'Editar tarea', owner: Team.p4),
+  AppRoutes.editTask: (_) => const EditTaskScreen(),
 };

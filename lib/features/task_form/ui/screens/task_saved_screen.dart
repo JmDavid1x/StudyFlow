@@ -1,21 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:studyflow/core/demo/demo_data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/task_form/ui/widgets/task_form_data.dart';
-
-/// Tarea del prototipo, para cuando se abre esta pantalla sin argumentos
-/// (por ejemplo, desde el menú de desarrollo).
-final _exampleTask = TaskFormData(
-  title: 'Prototipo flujo principal',
-  subject: DemoData.subjects.first,
-  kind: TaskKind.project,
-  date: DateTime(2026, 9, 23),
-  time: const TimeOfDay(hour: 23, minute: 59),
-  priority: TaskPriority.high,
-  channel: DeliveryChannel.intu,
-);
 
 /// Tarea guardada (Figma 15). Confirma que la tarea quedó guardada y muestra
 /// su resumen. Recibe un [TaskFormData] como argumento de la ruta.
@@ -27,7 +14,7 @@ class TaskSavedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
-    final task = args is TaskFormData ? args : _exampleTask;
+    final task = args is TaskFormData ? args : prototypeTask;
 
     return Scaffold(
       body: SafeArea(
