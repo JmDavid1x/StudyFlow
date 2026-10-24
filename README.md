@@ -24,12 +24,30 @@ Proyecto final de **Aplicaciones Móviles** · Universidad Icesi · 2026-2.
 | 24 nov | Sprint 3 | Virtual |
 | 30 nov | Entrega final | El profesor usa la app |
 
-## Estructura del repositorio
+## Cómo correrlo
+
+```bash
+git clone https://github.com/JmDavid1x/StudyFlow.git
+cd StudyFlow
+flutter pub get
+flutter run
+```
+
+Al abrir la app, cualquier pantalla en construcción tiene el botón **Ver todas las pantallas**, que lleva al índice de pantallas y a la galería del design system.
+
+## Estructura
 
 ```
-docs/        modelo de datos, alcance por sprint y decisiones
-supabase/    migraciones de la base de datos y pruebas SQL
-tools/       prototipos y pruebas que no son parte de la app
+lib/
+  core/design_system/   tokens, tema y componentes (ver docs/design-system.md)
+  core/navigation/      rutas, barra inferior y pantallas temporales
+  core/demo/            datos de ejemplo del Sprint 1
+  features/<feature>/   una carpeta por parte de la app (auth, subjects, tasks...)
+docs/                   design system, reparto del sprint y flujo de Git
 ```
 
-La app de Flutter se agrega en la raíz del repositorio en el Sprint 1.
+## Documentos
+
+- [Design system](docs/design-system.md)
+- [Sprint 1: reparto y fechas](docs/sprint-1/reparto.md)
+- [Cómo trabajamos con Git](docs/flujo-git.md)
