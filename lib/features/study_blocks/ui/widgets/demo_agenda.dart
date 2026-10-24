@@ -11,20 +11,18 @@ enum AgendaKind { classSession, studyBlock, delivery, exam }
 class AgendaItem {
   const AgendaItem({
     required this.kind,
-    required this.title,
     required this.subject,
     required this.day,
     required this.start,
     this.end,
+    this.task,
     this.detail = '',
     this.byAssistant = false,
+    this.reminderMinutes = 0,
     this.done = false,
   });
 
   final AgendaKind kind;
-
-  /// Nombre del bloque, la entrega o el examen. En una clase va vacío.
-  final String title;
   final DemoSubject subject;
 
   /// Día del calendario, sin hora.
@@ -32,170 +30,109 @@ class AgendaItem {
   final TimeOfDay start;
   final TimeOfDay? end;
 
-  /// Salón de la clase o del examen, o canal de la entrega.
+  /// Tarea de DemoData: la que se entrega o la que prepara el bloque.
+  /// En una clase va vacía.
+  final DemoTask? task;
+
+  /// Profesor de la clase, lugar del examen o canal de la entrega.
   final String detail;
 
   /// Si el bloque lo creó el asistente o el usuario.
   final bool byAssistant;
+
+  /// Minutos antes de empezar en que se avisa. 0 es sin aviso.
+  final int reminderMinutes;
   final bool done;
+
+  /// "Avanzar en Taller 3", "Estudiar para Parcial 2", o el nombre de la
+  /// tarea o la materia.
+  String get title => switch (kind) {
+        AgendaKind.classSession => subject.name,
+        AgendaKind.studyBlock => task!.isExam ? 'Estudiar para ${task!.title}' : 'Avanzar en ${task!.title}',
+        _ => task!.title,
+      };
 
   /// Las clases no se completan; lo demás queda pendiente hasta hacerlo.
   bool get isPending => kind != AgendaKind.classSession && !done;
 }
 
-DemoSubject _subject(String name) => DemoData.subjects.firstWhere((s) => s.name == name);
+DemoSubject _subjectNamed(String name) => DemoData.subjects.firstWhere((s) => s.name == name);
 
-/// Agenda de la semana del prototipo: lunes 21 a domingo 27 de septiembre
-/// de 2026. En el Sprint 2 sale de Supabase.
+DemoTask _taskNamed(String title) => DemoData.tasks.firstWhere((t) => t.title == title);
+
+AgendaItem _class(String subject, DateTime day, TimeOfDay start, TimeOfDay end) {
+  final s = _subjectNamed(subject);
+  return AgendaItem(
+    kind: AgendaKind.classSession,
+    subject: s,
+    day: day,
+    start: start,
+    end: end,
+    detail: s.professor,
+  );
+}
+
+AgendaItem _block(String task, DateTime day, TimeOfDay start, TimeOfDay end, {bool byAssistant = true}) {
+  final t = _taskNamed(task);
+  return AgendaItem(
+    kind: AgendaKind.studyBlock,
+    subject: _subjectNamed(t.subject),
+    task: t,
+    day: day,
+    start: start,
+    end: end,
+    byAssistant: byAssistant,
+    reminderMinutes: 15,
+  );
+}
+
+AgendaItem _due(String task, DateTime day, TimeOfDay time, String detail) {
+  final t = _taskNamed(task);
+  return AgendaItem(
+    kind: t.isExam ? AgendaKind.exam : AgendaKind.delivery,
+    subject: _subjectNamed(t.subject),
+    task: t,
+    day: day,
+    start: time,
+    detail: detail,
+  );
+}
+
+/// Agenda de la semana del prototipo, lunes 21 a domingo 27 de septiembre
+/// de 2026, armada con las materias y tareas de DemoData. Las clases siguen
+/// el horario de cada materia. En el Sprint 2 sale de Supabase.
 abstract final class DemoAgenda {
   /// "Hoy" en el prototipo: lunes 21 de septiembre de 2026.
   static final today = DateTime(2026, 9, 21);
 
+  static final _mon = DateTime(2026, 9, 21);
+  static final _tue = DateTime(2026, 9, 22);
+  static final _wed = DateTime(2026, 9, 23);
+  static final _thu = DateTime(2026, 9, 24);
+  static final _fri = DateTime(2026, 9, 25);
+
+  static TimeOfDay _at(int hour, [int minute = 0]) => TimeOfDay(hour: hour, minute: minute);
+
   static final items = <AgendaItem>[
     // Lunes 21
-    AgendaItem(
-      kind: AgendaKind.classSession,
-      title: '',
-      subject: _subject('Bases de Datos'),
-      day: DateTime(2026, 9, 21),
-      start: const TimeOfDay(hour: 9, minute: 0),
-      end: const TimeOfDay(hour: 11, minute: 0),
-      detail: 'Lab 3',
-    ),
-    AgendaItem(
-      kind: AgendaKind.studyBlock,
-      title: 'Avanzar en Taller 3',
-      subject: _subject('Bases de Datos'),
-      day: DateTime(2026, 9, 21),
-      start: const TimeOfDay(hour: 13, minute: 0),
-      end: const TimeOfDay(hour: 15, minute: 0),
-      byAssistant: true,
-    ),
-    AgendaItem(
-      kind: AgendaKind.studyBlock,
-      title: 'Avanzar en Lectura capítulo 4',
-      subject: _subject('Cálculo Integral'),
-      day: DateTime(2026, 9, 21),
-      start: const TimeOfDay(hour: 16, minute: 0),
-      end: const TimeOfDay(hour: 17, minute: 0),
-      byAssistant: true,
-    ),
-    AgendaItem(
-      kind: AgendaKind.classSession,
-      title: '',
-      subject: _subject('Cálculo Integral'),
-      day: DateTime(2026, 9, 21),
-      start: const TimeOfDay(hour: 18, minute: 0),
-      end: const TimeOfDay(hour: 20, minute: 0),
-      detail: 'Salón 205D',
-    ),
-    AgendaItem(
-      kind: AgendaKind.delivery,
-      title: 'Lectura capítulo 4',
-      subject: _subject('Cálculo Integral'),
-      day: DateTime(2026, 9, 21),
-      start: const TimeOfDay(hour: 18, minute: 0),
-      detail: 'en clase',
-    ),
-    AgendaItem(
-      kind: AgendaKind.delivery,
-      title: 'Taller 3: consultas SQL',
-      subject: _subject('Bases de Datos'),
-      day: DateTime(2026, 9, 21),
-      start: const TimeOfDay(hour: 23, minute: 59),
-      detail: 'por INTU',
-    ),
+    _class('Cálculo Integral', _mon, _at(9), _at(11)),
+    _block('Taller 3: consultas SQL', _mon, _at(13), _at(15)),
+    _block('Lectura capítulo 4', _mon, _at(16), _at(17)),
+    _due('Lectura capítulo 4', _mon, _at(18), 'en clase'),
+    _due('Taller 3: consultas SQL', _mon, _at(23, 59), 'por INTU'),
     // Martes 22
-    AgendaItem(
-      kind: AgendaKind.classSession,
-      title: '',
-      subject: _subject('Aplicaciones Móviles'),
-      day: DateTime(2026, 9, 22),
-      start: const TimeOfDay(hour: 7, minute: 0),
-      end: const TimeOfDay(hour: 9, minute: 0),
-      detail: 'Salón 401C',
-    ),
-    AgendaItem(
-      kind: AgendaKind.studyBlock,
-      title: 'Avanzar en Prototipo',
-      subject: _subject('Aplicaciones Móviles'),
-      day: DateTime(2026, 9, 22),
-      start: const TimeOfDay(hour: 10, minute: 0),
-      end: const TimeOfDay(hour: 12, minute: 0),
-      byAssistant: true,
-    ),
-    AgendaItem(
-      kind: AgendaKind.studyBlock,
-      title: 'Estudiar para Parcial 2',
-      subject: _subject('Cálculo Integral'),
-      day: DateTime(2026, 9, 22),
-      start: const TimeOfDay(hour: 15, minute: 0),
-      end: const TimeOfDay(hour: 17, minute: 0),
-      byAssistant: true,
-    ),
+    _class('Aplicaciones Móviles', _tue, _at(7), _at(9)),
+    _block('Prototipo flujo principal', _tue, _at(10), _at(12)),
+    _block('Parcial 2', _tue, _at(15), _at(17)),
     // Miércoles 23
-    AgendaItem(
-      kind: AgendaKind.studyBlock,
-      title: 'Estudiar para Parcial 2',
-      subject: _subject('Cálculo Integral'),
-      day: DateTime(2026, 9, 23),
-      start: const TimeOfDay(hour: 15, minute: 0),
-      end: const TimeOfDay(hour: 17, minute: 0),
-      byAssistant: true,
-    ),
-    AgendaItem(
-      kind: AgendaKind.classSession,
-      title: '',
-      subject: _subject('Cálculo Integral'),
-      day: DateTime(2026, 9, 23),
-      start: const TimeOfDay(hour: 18, minute: 0),
-      end: const TimeOfDay(hour: 20, minute: 0),
-      detail: 'Salón 205D',
-    ),
-    AgendaItem(
-      kind: AgendaKind.delivery,
-      title: 'Prototipo flujo principal',
-      subject: _subject('Aplicaciones Móviles'),
-      day: DateTime(2026, 9, 23),
-      start: const TimeOfDay(hour: 23, minute: 59),
-      detail: 'por INTU',
-    ),
+    _class('Cálculo Integral', _wed, _at(9), _at(11)),
+    _block('Parcial 2', _wed, _at(15), _at(17), byAssistant: false),
+    _due('Prototipo flujo principal', _wed, _at(23, 59), 'por INTU'),
     // Jueves 24
-    AgendaItem(
-      kind: AgendaKind.classSession,
-      title: '',
-      subject: _subject('Aplicaciones Móviles'),
-      day: DateTime(2026, 9, 24),
-      start: const TimeOfDay(hour: 7, minute: 0),
-      end: const TimeOfDay(hour: 9, minute: 0),
-      detail: 'Salón 401C',
-    ),
-    AgendaItem(
-      kind: AgendaKind.classSession,
-      title: '',
-      subject: _subject('Bases de Datos'),
-      day: DateTime(2026, 9, 24),
-      start: const TimeOfDay(hour: 9, minute: 0),
-      end: const TimeOfDay(hour: 11, minute: 0),
-      detail: 'Lab 3',
-    ),
-    AgendaItem(
-      kind: AgendaKind.exam,
-      title: 'Parcial 2',
-      subject: _subject('Cálculo Integral'),
-      day: DateTime(2026, 9, 24),
-      start: const TimeOfDay(hour: 14, minute: 0),
-      detail: 'Salón 302',
-    ),
+    _class('Aplicaciones Móviles', _thu, _at(7), _at(9)),
+    _due('Parcial 2', _thu, _at(14), 'Salón 302'),
     // Viernes 25
-    AgendaItem(
-      kind: AgendaKind.studyBlock,
-      title: 'Avanzar en Taller 4',
-      subject: _subject('Aplicaciones Móviles'),
-      day: DateTime(2026, 9, 25),
-      start: const TimeOfDay(hour: 15, minute: 0),
-      end: const TimeOfDay(hour: 16, minute: 30),
-    ),
+    _class('Bases de Datos', _fri, _at(14), _at(16)),
   ];
 
   /// Lo que hay en [day], ordenado por hora.
@@ -204,6 +141,9 @@ abstract final class DemoAgenda {
       ..sort((a, b) => (a.start.hour * 60 + a.start.minute).compareTo(b.start.hour * 60 + b.start.minute));
     return list;
   }
+
+  /// Primer bloque de la semana, para abrir el detalle sin argumentos.
+  static AgendaItem get firstBlock => items.firstWhere((item) => item.kind == AgendaKind.studyBlock);
 }
 
 /// "1:00 – 3:00 p. m." o "10:00 a. m. – 12:00 p. m.": si las dos horas son

@@ -21,7 +21,7 @@ Future<void> showAddSheet(BuildContext context) {
         const SizedBox(height: SfSpacing.md),
         _AddOption(
           icon: Icons.check_box_outlined,
-          title: 'Tarea o examen',
+          title: 'Nueva tarea',
           subtitle: 'Una entrega, un proyecto o un parcial',
           highlighted: true,
           onTap: () => open(sheetContext, AppRoutes.newTask),
@@ -29,7 +29,7 @@ Future<void> showAddSheet(BuildContext context) {
         const SizedBox(height: SfSpacing.sm),
         _AddOption(
           icon: Icons.schedule,
-          title: 'Bloque de estudio',
+          title: 'Nuevo bloque de estudio',
           subtitle: 'Tiempo para avanzar en una tarea',
           onTap: () => open(sheetContext, AppRoutes.newStudyBlock),
         ),

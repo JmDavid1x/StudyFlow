@@ -38,7 +38,8 @@ class AgendaItemTile extends StatelessWidget {
   }
 }
 
-/// Las clases van sin relleno: son contexto del día, no algo por hacer.
+/// Las clases van sin relleno, con el ícono del color de su materia: son
+/// contexto del día, no algo por hacer.
 class _ClassCard extends StatelessWidget {
   const _ClassCard({required this.item});
 
@@ -54,7 +55,7 @@ class _ClassCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.menu_book_outlined, size: 20, color: SfColors.textSecondary),
+          Icon(Icons.menu_book_outlined, size: 20, color: item.subject.color),
           const SizedBox(width: SfSpacing.sm),
           Expanded(
             child: Column(
@@ -74,8 +75,8 @@ class _ClassCard extends StatelessWidget {
   }
 }
 
-/// Bloque de estudio, entrega o examen: tarjeta con una barra del color de
-/// su materia a la izquierda.
+/// Bloque de estudio, entrega o examen: tarjeta con una barra de color a la
+/// izquierda (SfColors.info en los bloques, el de la materia en lo demás).
 class _ActivityCard extends StatelessWidget {
   const _ActivityCard({required this.item, this.onTap});
 
@@ -85,14 +86,10 @@ class _ActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isBlock = item.kind == AgendaKind.studyBlock;
-    // Los bloques se distinguen con SfColors.info; entregas y exámenes,
-    // con el color de su materia.
-    final (IconData labelIcon, String label, Color labelColor) = switch (item.kind) {
-      AgendaKind.studyBlock => (
-          item.byAssistant ? Icons.smart_toy_outlined : Icons.person_outline,
-          item.byAssistant ? 'Bloque de estudio · asistente' : 'Bloque de estudio · tuyo',
-          SfColors.info,
-        ),
+    // Los bloques van en SfColors.info; entregas y exámenes, con el color
+    // de su materia.
+    final (IconData labelIcon, String label, Color color) = switch (item.kind) {
+      AgendaKind.studyBlock => (Icons.schedule, 'Bloque de estudio', SfColors.info),
       AgendaKind.exam => (Icons.flag_outlined, 'Examen', item.subject.color),
       _ => (Icons.flag_outlined, 'Entrega', item.subject.color),
     };
@@ -111,7 +108,7 @@ class _ActivityCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(width: SfSpacing.xxs, color: item.subject.color),
+              Container(width: SfSpacing.xxs, color: color),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(SfSpacing.sm),
@@ -123,13 +120,13 @@ class _ActivityCard extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Icon(labelIcon, size: 14, color: labelColor),
+                                Icon(labelIcon, size: 14, color: color),
                                 const SizedBox(width: 2),
                                 Flexible(
                                   child: Text(
                                     label,
                                     overflow: TextOverflow.ellipsis,
-                                    style: SfTypography.caption.copyWith(color: labelColor),
+                                    style: SfTypography.caption.copyWith(color: color),
                                   ),
                                 ),
                               ],
@@ -142,7 +139,7 @@ class _ActivityCard extends StatelessWidget {
                       ),
                       if (isBlock) ...[
                         const SizedBox(width: SfSpacing.xs),
-                        SfCheckCircle(checked: item.done, color: item.subject.color, onTap: onTap),
+                        SfCheckCircle(checked: item.done, color: color, onTap: onTap),
                       ],
                     ],
                   ),

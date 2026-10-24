@@ -81,7 +81,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          '${CalendarLabels.dayTitle(_selected)}${isToday ? ' · Hoy' : ''}',
+                          isToday
+                              ? 'Hoy, ${CalendarLabels.dayTitle(_selected).toLowerCase()}'
+                              : CalendarLabels.dayTitle(_selected),
                           style: SfTypography.h2,
                         ),
                       ),
