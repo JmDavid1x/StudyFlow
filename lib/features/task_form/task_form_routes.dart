@@ -4,6 +4,7 @@ import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/core/navigation/placeholder_screen.dart';
 import 'package:studyflow/core/navigation/team.dart';
 import 'package:studyflow/features/task_form/ui/screens/new_task_screen.dart';
+import 'package:studyflow/features/task_form/ui/screens/task_saved_screen.dart';
 
 /// Rutas de Formularios de tarea (Camilo).
 ///
@@ -11,6 +12,6 @@ import 'package:studyflow/features/task_form/ui/screens/new_task_screen.dart';
 /// Solo tú editas este archivo, así no hay conflictos con el resto del equipo.
 final Map<String, WidgetBuilder> taskFormRoutes = {
   AppRoutes.newTask: (_) => const NewTaskScreen(),
-  AppRoutes.taskSaved: (_) => const PlaceholderScreen(figma: '15', title: 'Tarea guardada', owner: Team.p4),
+  AppRoutes.taskSaved: (_) => const TaskSavedScreen(),
   AppRoutes.editTask: (_) => const PlaceholderScreen(figma: '19', title: 'Editar tarea', owner: Team.p4),
 };
