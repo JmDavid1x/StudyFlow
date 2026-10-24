@@ -54,6 +54,13 @@ class AgendaItem {
 
   /// Las clases no se completan; lo demás queda pendiente hasta hacerlo.
   bool get isPending => kind != AgendaKind.classSession && !done;
+
+  /// Minutos entre el inicio y el fin. 0 si no tiene fin (entregas).
+  int get durationMinutes {
+    final finish = end;
+    if (finish == null) return 0;
+    return (finish.hour * 60 + finish.minute) - (start.hour * 60 + start.minute);
+  }
 }
 
 DemoSubject _subjectNamed(String name) => DemoData.subjects.firstWhere((s) => s.name == name);
@@ -144,6 +151,19 @@ abstract final class DemoAgenda {
 
   /// Primer bloque de la semana, para abrir el detalle sin argumentos.
   static AgendaItem get firstBlock => items.firstWhere((item) => item.kind == AgendaKind.studyBlock);
+
+  /// Cuántos bloques hay en la semana para preparar [task].
+  static int blocksFor(DemoTask task) =>
+      items.where((item) => item.kind == AgendaKind.studyBlock && item.task == task).length;
+}
+
+/// "30 min", "1 h", "1 h 30 min".
+String formatDuration(int minutes) {
+  final hours = minutes ~/ 60;
+  final rest = minutes % 60;
+  if (hours == 0) return '$rest min';
+  if (rest == 0) return '$hours h';
+  return '$hours h $rest min';
 }
 
 /// "1:00 – 3:00 p. m." o "10:00 a. m. – 12:00 p. m.": si las dos horas son
