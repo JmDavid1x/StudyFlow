@@ -4,7 +4,7 @@ import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/core/navigation/placeholder_screen.dart';
 import 'package:studyflow/core/navigation/team.dart';
 
-/// Rutas de Formularios de tarea (Persona 4).
+/// Rutas de Formularios de tarea (Camilo).
 ///
 /// Cuando termines una pantalla, cambia su PlaceholderScreen por tu pantalla.
 /// Solo tú editas este archivo, así no hay conflictos con el resto del equipo.

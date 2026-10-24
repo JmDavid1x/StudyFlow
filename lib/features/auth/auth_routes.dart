@@ -4,7 +4,7 @@ import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/core/navigation/placeholder_screen.dart';
 import 'package:studyflow/core/navigation/team.dart';
 
-/// Rutas de Acceso (Persona 1).
+/// Rutas de Acceso (Jose David).
 ///
 /// Cuando termines una pantalla, cambia su PlaceholderScreen por tu pantalla.
 /// Solo tú editas este archivo, así no hay conflictos con el resto del equipo.

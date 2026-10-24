@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:studyflow/core/navigation/placeholder_screen.dart';
 import 'package:studyflow/core/navigation/team.dart';
 
-/// Pestaña Calendario (Figma 20). La construye Persona 4.
+/// Pestaña Calendario (Figma 20). La construye Camilo.
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 

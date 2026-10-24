@@ -20,10 +20,10 @@ Cada persona tiene su propia carpeta y su propio archivo de rutas, así nadie pi
 | Persona | Rama | Pantallas (número en Figma) | Carpetas |
 | --- | --- | --- | --- |
 | **1 · Jose David** | `feature/acceso` | 01 Splash, 02-03 Onboarding, 04 Registro, 05 Iniciar sesión, 06 Recuperar contraseña, 07 Correo enviado. Además: base del proyecto, design system y navegación | `features/auth/`, `core/` |
-| **2** | `feature/materias` | 08 Tus materias, 09 Nueva materia + S9 Horario de clase, 10 Activar recordatorios, 21 Materias (pestaña), 22 Detalle de materia, 23 Registrar nota + S3 Nota registrada | `features/subjects/` |
-| **3** | `feature/inicio-tareas` | 11, 12 y 16 Inicio (vacío, normal y actualizado), 13 Notificaciones, 17 Tareas (pestaña), 18 Detalle de tarea + S1 Completada + S2 Eliminar + S8 Vencida, 29 Detalle de examen | `features/home/`, `features/tasks/` |
-| **4** | `feature/calendario-bloques` | 14 Nueva tarea, 15 Tarea guardada, 19 Editar tarea, 20 Calendario (pestaña) + S7 Agregar, 27 Bloque de estudio + S5 Completado + S10 Pendiente, 28 Nuevo bloque | `features/task_form/`, `features/calendar/`, `features/study_blocks/` |
-| **5** | `feature/asistente-perfil-plus` | 24 Asistente + S4 Plan agregado + 31 Sin conexión, 25 Perfil (pestaña), 26 Ajustes de notificaciones, 30 StudyFlow Plus, 32 Pago + S11 Prueba activada | `features/assistant/`, `features/profile/`, `features/subscription/` |
+| **2 · Miguel** | `feature/materias` | 08 Tus materias, 09 Nueva materia + S9 Horario de clase, 10 Activar recordatorios, 21 Materias (pestaña), 22 Detalle de materia, 23 Registrar nota + S3 Nota registrada | `features/subjects/` |
+| **3 · Perez** | `feature/inicio-tareas` | 11, 12 y 16 Inicio (vacío, normal y actualizado), 13 Notificaciones, 17 Tareas (pestaña), 18 Detalle de tarea + S1 Completada + S2 Eliminar + S8 Vencida, 29 Detalle de examen | `features/home/`, `features/tasks/` |
+| **4 · Camilo** | `feature/calendario-bloques` | 14 Nueva tarea, 15 Tarea guardada, 19 Editar tarea, 20 Calendario (pestaña) + S7 Agregar, 27 Bloque de estudio + S5 Completado + S10 Pendiente, 28 Nuevo bloque | `features/task_form/`, `features/calendar/`, `features/study_blocks/` |
+| **5 · Santiago** | `feature/asistente-perfil-plus` | 24 Asistente + S4 Plan agregado + 31 Sin conexión, 25 Perfil (pestaña), 26 Ajustes de notificaciones, 30 StudyFlow Plus, 32 Pago + S11 Prueba activada | `features/assistant/`, `features/profile/`, `features/subscription/` |
 
 ## Cómo construir una pantalla
 

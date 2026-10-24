@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:studyflow/core/navigation/placeholder_screen.dart';
 import 'package:studyflow/core/navigation/team.dart';
 
-/// Pestaña Perfil (Figma 25). La construye Persona 5.
+/// Pestaña Perfil (Figma 25). La construye Santiago.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 

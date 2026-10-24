@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:studyflow/core/navigation/placeholder_screen.dart';
 import 'package:studyflow/core/navigation/team.dart';
 
-/// Pestaña Materias (Figma 21). La construye Persona 2.
+/// Pestaña Materias (Figma 21). La construye Miguel.
 class SubjectsScreen extends StatelessWidget {
   const SubjectsScreen({super.key});
 

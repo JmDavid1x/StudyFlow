@@ -4,7 +4,7 @@ import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/core/navigation/placeholder_screen.dart';
 import 'package:studyflow/core/navigation/team.dart';
 
-/// Rutas de StudyFlow Plus (Persona 5).
+/// Rutas de StudyFlow Plus (Santiago).
 ///
 /// Cuando termines una pantalla, cambia su PlaceholderScreen por tu pantalla.
 /// Solo tú editas este archivo, así no hay conflictos con el resto del equipo.

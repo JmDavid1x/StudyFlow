@@ -51,3 +51,11 @@ docs/                   design system, reparto del sprint y flujo de Git
 - [Design system](docs/design-system.md)
 - [Sprint 1: reparto y fechas](docs/sprint-1/reparto.md)
 - [Cómo trabajamos con Git](docs/flujo-git.md)
+
+## Equipo
+
+Jose David Mayor López, Miguel, Perez, Camilo y Santiago.
+
+---
+
+Este trabajo fue apoyado con herramientas de inteligencia artificial.
