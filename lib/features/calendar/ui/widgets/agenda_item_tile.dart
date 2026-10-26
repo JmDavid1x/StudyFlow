@@ -6,12 +6,26 @@ import 'package:studyflow/features/study_blocks/ui/widgets/demo_agenda.dart';
 /// Una fila de la agenda del día (Figma 20): la hora a la izquierda y la
 /// tarjeta de la clase, el bloque, la entrega o el examen a la derecha.
 class AgendaItemTile extends StatelessWidget {
-  const AgendaItemTile({super.key, required this.item, this.onTap});
+  const AgendaItemTile({
+    super.key,
+    required this.item,
+    this.onTap,
+    this.onComplete,
+    this.completed = false,
+  });
 
   static const _timeWidth = 62.0;
 
   final AgendaItem item;
+
+  /// Toque en la tarjeta: abre el detalle.
   final VoidCallback? onTap;
+
+  /// Toque en el circulito de un bloque: lo marca como completado.
+  final VoidCallback? onComplete;
+
+  /// Si el bloque ya se completó en esta sesión (circulito marcado).
+  final bool completed;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +45,7 @@ class AgendaItemTile extends StatelessWidget {
         Expanded(
           child: item.kind == AgendaKind.classSession
               ? _ClassCard(item: item)
-              : _ActivityCard(item: item, onTap: onTap),
+              : _ActivityCard(item: item, onTap: onTap, onComplete: onComplete, completed: completed),
         ),
       ],
     );
@@ -78,10 +92,12 @@ class _ClassCard extends StatelessWidget {
 /// Bloque de estudio, entrega o examen: tarjeta con una barra de color a la
 /// izquierda (SfColors.info en los bloques, el de la materia en lo demás).
 class _ActivityCard extends StatelessWidget {
-  const _ActivityCard({required this.item, this.onTap});
+  const _ActivityCard({required this.item, this.onTap, this.onComplete, this.completed = false});
 
   final AgendaItem item;
   final VoidCallback? onTap;
+  final VoidCallback? onComplete;
+  final bool completed;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +155,12 @@ class _ActivityCard extends StatelessWidget {
                       ),
                       if (isBlock) ...[
                         const SizedBox(width: SfSpacing.xs),
-                        SfCheckCircle(checked: item.done, color: color, onTap: onTap),
+                        // Un bloque ya completado no se vuelve a completar.
+                        SfCheckCircle(
+                          checked: item.done || completed,
+                          color: color,
+                          onTap: item.done || completed ? null : onComplete,
+                        ),
                       ],
                     ],
                   ),
