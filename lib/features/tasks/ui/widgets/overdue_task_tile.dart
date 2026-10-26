@@ -43,16 +43,12 @@ class OverdueTaskTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(task.title, style: SfTypography.bodyStrong),
-                    Text(
-                      '${task.subject} · ${task.due}',
-                      overflow: TextOverflow.ellipsis,
-                      style: SfTypography.caption,
-                    ),
+                    Text('${task.subject} · ${task.due}', style: SfTypography.caption),
                   ],
                 ),
               ),
               const SizedBox(width: SfSpacing.xs),
-              const SfBadge(label: '¿La entregaste?', tone: SfTone.danger),
+              const Flexible(child: SfBadge(label: '¿La entregaste?', tone: SfTone.danger)),
             ],
           ),
         ),
