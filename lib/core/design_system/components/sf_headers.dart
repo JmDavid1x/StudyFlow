@@ -73,7 +73,7 @@ class SfLargeTitle extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(title, style: SfTypography.display)),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );
