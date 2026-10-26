@@ -5,6 +5,7 @@ import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/block_completed_sheet.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/block_pending_sheet.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/demo_agenda.dart';
+import 'package:studyflow/features/study_blocks/ui/widgets/discard_block_sheet.dart';
 
 /// Bloque de estudio (Figma 27). Muestra qué tarea prepara el bloque, cuándo
 /// es, cuánto dura, quién lo creó y el aviso. Recibe el bloque como argumento
@@ -150,7 +151,7 @@ class StudyBlockScreen extends StatelessWidget {
                         child: SfButton(
                           label: 'Descartar',
                           variant: SfButtonVariant.ghost,
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => showDiscardBlockSheet(context, block),
                         ),
                       ),
                     ],

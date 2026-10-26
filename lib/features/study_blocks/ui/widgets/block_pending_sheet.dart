@@ -4,6 +4,7 @@ import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/block_completed_sheet.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/demo_agenda.dart';
+import 'package:studyflow/features/study_blocks/ui/widgets/discard_block_sheet.dart';
 
 /// S10 Bloque pendiente. Aparece cuando ya pasó la hora del bloque y no se
 /// marcó como hecho: se puede confirmar, reprogramar o descartar.
@@ -44,7 +45,7 @@ Future<void> showBlockPendingSheet(BuildContext context, AgendaItem block) {
           variant: SfButtonVariant.ghost,
           onPressed: () {
             Navigator.pop(sheetContext);
-            Navigator.pop(context);
+            discardBlockAndGoBack(context);
           },
         ),
       ],
