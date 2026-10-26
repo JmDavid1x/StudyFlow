@@ -6,7 +6,16 @@ import 'package:studyflow/features/study_blocks/ui/widgets/demo_agenda.dart';
 
 /// S5 Bloque completado. Confirma el bloque y aclara que la tarea sigue
 /// abierta hasta que se marque como entregada.
-Future<void> showBlockCompletedSheet(BuildContext context, AgendaItem block) {
+///
+/// [closeScreen] es true cuando se abre desde Bloque de estudio: el botón
+/// "Volver al calendario" cierra la hoja y esa pantalla. Desde la pestaña
+/// Calendario va en false: el botón dice "Listo" y solo cierra la hoja, para
+/// no sacar al usuario de la app principal.
+Future<void> showBlockCompletedSheet(
+  BuildContext context,
+  AgendaItem block, {
+  bool closeScreen = true,
+}) {
   final task = block.task!;
   final count = DemoAgenda.blocksFor(task);
   final message = count > 1
@@ -27,10 +36,10 @@ Future<void> showBlockCompletedSheet(BuildContext context, AgendaItem block) {
           arguments: task,
         );
       },
-      secondaryLabel: 'Volver al calendario',
+      secondaryLabel: closeScreen ? 'Volver al calendario' : 'Listo',
       onSecondary: () {
         Navigator.pop(sheetContext);
-        Navigator.pop(context);
+        if (closeScreen) Navigator.pop(context);
       },
       child: SfCard(
         child: Column(

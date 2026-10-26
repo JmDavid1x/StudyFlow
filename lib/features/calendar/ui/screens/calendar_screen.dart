@@ -7,6 +7,7 @@ import 'package:studyflow/features/calendar/ui/widgets/agenda_item_tile.dart';
 import 'package:studyflow/features/calendar/ui/widgets/calendar_labels.dart';
 import 'package:studyflow/features/calendar/ui/widgets/month_header.dart';
 import 'package:studyflow/features/calendar/ui/widgets/week_strip.dart';
+import 'package:studyflow/features/study_blocks/ui/widgets/block_completed_sheet.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/demo_agenda.dart';
 
 /// Pestaña Calendario (Figma 20). Muestra una semana, el día elegido y su
@@ -26,14 +27,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
   /// Lunes de la semana del día elegido.
   DateTime get _weekStart => _selected.subtract(Duration(days: _selected.weekday - 1));
 
+  /// Bloques completados en esta sesión. En el Sprint 1 no hay base de
+  /// datos, así que se guardan aquí y se pierden al cerrar la app.
+  final Set<AgendaItem> _completed = {};
+
   void _moveWeek(int weeks) {
     setState(() => _selected = _selected.add(Duration(days: 7 * weeks)));
   }
 
+  /// Pendiente de verdad: no está hecho ni se completó en esta sesión.
+  bool _isPending(AgendaItem item) => item.isPending && !_completed.contains(item);
+
   List<Color> _dotsFor(DateTime day) => [
         for (final item in DemoAgenda.forDay(day))
-          if (item.isPending) item.subject.color,
+          if (_isPending(item)) item.subject.color,
       ];
+
+  void _completeBlock(AgendaItem block) {
+    setState(() => _completed.add(block));
+    // closeScreen en false: desde la pestaña solo se cierra la hoja.
+    showBlockCompletedSheet(context, block, closeScreen: false);
+  }
 
   /// El bloque se abre con el AgendaItem completo (StudyBlockScreen lo
   /// espera así); las entregas y los exámenes, con su tarea (DemoTask).
@@ -53,7 +67,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final items = DemoAgenda.forDay(_selected);
-    final pending = items.where((item) => item.isPending).length;
+    final pending = items.where(_isPending).length;
     final isToday = DateUtils.isSameDay(_selected, DemoAgenda.today);
 
     return Scaffold(
@@ -121,6 +135,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       AgendaItemTile(
                         item: item,
                         onTap: item.kind == AgendaKind.classSession ? null : () => _openItem(item),
+                        onComplete: item.kind == AgendaKind.studyBlock ? () => _completeBlock(item) : null,
+                        completed: _completed.contains(item),
                       ),
                       const SizedBox(height: SfSpacing.sm),
                     ],
