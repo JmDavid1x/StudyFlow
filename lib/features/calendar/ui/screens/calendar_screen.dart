@@ -35,13 +35,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
           if (item.isPending) item.subject.color,
       ];
 
+  /// El bloque se abre con el AgendaItem completo (StudyBlockScreen lo
+  /// espera así); las entregas y los exámenes, con su tarea (DemoTask).
   void _openItem(AgendaItem item) {
-    final route = switch (item.kind) {
-      AgendaKind.studyBlock => AppRoutes.studyBlock,
-      AgendaKind.exam => AppRoutes.examDetail,
-      _ => AppRoutes.taskDetail,
-    };
-    Navigator.pushNamed(context, route, arguments: item);
+    switch (item.kind) {
+      case AgendaKind.studyBlock:
+        Navigator.pushNamed(context, AppRoutes.studyBlock, arguments: item);
+      case AgendaKind.exam:
+        Navigator.pushNamed(context, AppRoutes.examDetail, arguments: item.task);
+      case AgendaKind.delivery:
+        Navigator.pushNamed(context, AppRoutes.taskDetail, arguments: item.task);
+      case AgendaKind.classSession:
+        break; // Las clases no abren ninguna pantalla.
+    }
   }
 
   @override
