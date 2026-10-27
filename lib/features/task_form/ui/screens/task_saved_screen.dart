@@ -142,6 +142,7 @@ class _TaskSummaryCard extends StatelessWidget {
   }
 }
 
+/// Una fila del resumen: ícono y texto.
 class _SummaryRow extends StatelessWidget {
   const _SummaryRow({
     required this.icon,

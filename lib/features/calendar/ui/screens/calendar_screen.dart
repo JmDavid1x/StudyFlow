@@ -31,6 +31,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   /// datos, así que se guardan aquí y se pierden al cerrar la app.
   final Set<AgendaItem> _completed = {};
 
+  /// Flechas del mes: mueve el día elegido una semana atrás (-1) o adelante (1).
   void _moveWeek(int weeks) {
     setState(() => _selected = _selected.add(Duration(days: 7 * weeks)));
   }
@@ -38,11 +39,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
   /// Pendiente de verdad: no está hecho ni se completó en esta sesión.
   bool _isPending(AgendaItem item) => item.isPending && !_completed.contains(item);
 
+  /// Puntos de un día en la franja: un color de materia por cada pendiente.
   List<Color> _dotsFor(DateTime day) => [
         for (final item in DemoAgenda.forDay(day))
           if (_isPending(item)) item.subject.color,
       ];
 
+  /// Circulito de un bloque: lo marca como completado y abre S5.
   void _completeBlock(AgendaItem block) {
     setState(() => _completed.add(block));
     // closeScreen en false: desde la pestaña solo se cierra la hoja.

@@ -19,8 +19,15 @@ class TaskForm extends StatefulWidget {
     this.initial = const TaskFormData(),
   });
 
+  /// Texto del botón: "Guardar tarea" (14) o "Guardar cambios" (19).
   final String submitLabel;
+
+  /// Qué hacer con los datos cuando pasan la validación. Lo decide la
+  /// pantalla que usa el formulario (ir a Tarea guardada o volver atrás).
   final ValueChanged<TaskFormData> onSubmit;
+
+  /// Valores con los que arranca el formulario: vacío en Nueva tarea, con
+  /// los datos de la tarea en Editar tarea.
   final TaskFormData initial;
 
   @override
@@ -28,6 +35,8 @@ class TaskForm extends StatefulWidget {
 }
 
 class _TaskFormState extends State<TaskForm> {
+  // Cada campo del formulario es una variable de estado que arranca con el
+  // valor de widget.initial. Al cambiarla con setState se redibuja el campo.
   late final _title = TextEditingController(text: widget.initial.title);
   late final _place = TextEditingController(text: widget.initial.place);
   late final _notes = TextEditingController(text: widget.initial.notes);
@@ -52,18 +61,22 @@ class _TaskFormState extends State<TaskForm> {
     super.dispose();
   }
 
+  /// Si es examen se pide el lugar en vez del canal de entrega.
   bool get _isExam => _kind == TaskKind.exam;
 
+  /// Abre el calendario; si el usuario elige una fecha, se guarda.
   Future<void> _pickDate() async {
     final picked = await sfPickDate(context, initial: _date);
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// Abre el reloj; si el usuario elige una hora, se guarda.
   Future<void> _pickTime() async {
     final picked = await sfPickTime(context, initial: _time);
     if (picked != null) setState(() => _time = picked);
   }
 
+  /// Elige la parte de la nota y ajusta el valor de la tarea a ese límite.
   void _selectGradePart(GradePart part) {
     setState(() {
       _gradePart = part;
@@ -72,6 +85,8 @@ class _TaskFormState extends State<TaskForm> {
     });
   }
 
+  /// Botón de guardar: valida título, materia y fecha. Si falta alguno, se
+  /// quedan los errores en pantalla; si no, entrega los datos a onSubmit.
   void _submit() {
     setState(() => _triedToSave = true);
     if (_title.text.trim().isEmpty || _subject == null || _date == null) return;

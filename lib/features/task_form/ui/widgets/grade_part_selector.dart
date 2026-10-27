@@ -37,6 +37,7 @@ class GradePartSelector extends StatelessWidget {
   }
 }
 
+/// Una tarjeta: porcentaje arriba con su círculo de selección, nombre abajo.
 class _GradePartCard extends StatelessWidget {
   const _GradePartCard({required this.part, required this.selected, required this.onTap});
 

@@ -15,12 +15,14 @@ class NewStudyBlockScreen extends StatefulWidget {
 }
 
 class _NewStudyBlockScreenState extends State<NewStudyBlockScreen> {
+  /// Opciones de los SfChipBar como (minutos, texto que se ve).
   static const _durations = [(30, '30 min'), (60, '1 h'), (90, '1 h 30'), (120, '2 h')];
   static const _reminders = [(0, 'Sin aviso'), (10, '10 min'), (15, '15 min'), (30, '30 min')];
 
   /// Solo se puede preparar lo que aún no se ha entregado.
   final _tasks = DemoData.tasks.where((task) => !task.done).toList();
 
+  // Lo que el usuario va eligiendo. Duración y aviso arrancan como en Figma.
   DemoTask? _task;
   DateTime? _date;
   TimeOfDay? _time;
@@ -29,6 +31,9 @@ class _NewStudyBlockScreenState extends State<NewStudyBlockScreen> {
 
   /// Los errores solo se muestran después del primer intento de guardar.
   bool _triedToSave = false;
+
+  /// Evita volver a leer los argumentos de la ruta y pisar lo que el
+  /// usuario ya eligió.
   bool _loadedArgs = false;
 
   @override
@@ -41,16 +46,20 @@ class _NewStudyBlockScreenState extends State<NewStudyBlockScreen> {
     if (args is AgendaItem) _task = args.task;
   }
 
+  /// Abre el calendario en el "hoy" del prototipo; guarda el día elegido.
   Future<void> _pickDate() async {
     final picked = await sfPickDate(context, initial: _date ?? DemoAgenda.today);
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// Abre el reloj y guarda la hora de inicio elegida.
   Future<void> _pickTime() async {
     final picked = await sfPickTime(context, initial: _time);
     if (picked != null) setState(() => _time = picked);
   }
 
+  /// Botón "Guardar bloque": valida tarea, día y hora y vuelve atrás.
+  /// En el Sprint 1 no se guarda en ningún lado; en el Sprint 2 va a Supabase.
   void _save() {
     setState(() => _triedToSave = true);
     if (_task == null || _date == null || _time == null) return;

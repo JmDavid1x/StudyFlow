@@ -63,10 +63,16 @@ class AgendaItem {
   }
 }
 
+/// Busca una materia de DemoData por su nombre.
 DemoSubject _subjectNamed(String name) => DemoData.subjects.firstWhere((s) => s.name == name);
 
+/// Busca una tarea de DemoData por su título.
 DemoTask _taskNamed(String title) => DemoData.tasks.firstWhere((t) => t.title == title);
 
+// Atajos para armar la agenda sin repetir código. Reciben nombres de
+// DemoData, así la agenda no inventa materias ni tareas.
+
+/// Clase de una materia; el detalle es su profesor.
 AgendaItem _class(String subject, DateTime day, TimeOfDay start, TimeOfDay end) {
   final s = _subjectNamed(subject);
   return AgendaItem(
@@ -79,6 +85,7 @@ AgendaItem _class(String subject, DateTime day, TimeOfDay start, TimeOfDay end) 
   );
 }
 
+/// Bloque de estudio para preparar una tarea, con aviso de 15 minutos.
 AgendaItem _block(String task, DateTime day, TimeOfDay start, TimeOfDay end, {bool byAssistant = true}) {
   final t = _taskNamed(task);
   return AgendaItem(
@@ -93,6 +100,7 @@ AgendaItem _block(String task, DateTime day, TimeOfDay start, TimeOfDay end, {bo
   );
 }
 
+/// Entrega de una tarea, o examen si la tarea es examen.
 AgendaItem _due(String task, DateTime day, TimeOfDay time, String detail) {
   final t = _taskNamed(task);
   return AgendaItem(
@@ -118,8 +126,10 @@ abstract final class DemoAgenda {
   static final _thu = DateTime(2026, 9, 24);
   static final _fri = DateTime(2026, 9, 25);
 
+  /// Hora corta: _at(13) es 1:00 p. m.
   static TimeOfDay _at(int hour, [int minute = 0]) => TimeOfDay(hour: hour, minute: minute);
 
+  /// Todo lo de la semana. El calendario lo filtra por día con forDay.
   static final items = <AgendaItem>[
     // Lunes 21
     _class('Cálculo Integral', _mon, _at(9), _at(11)),

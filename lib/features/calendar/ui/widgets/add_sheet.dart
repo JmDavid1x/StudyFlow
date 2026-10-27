@@ -6,6 +6,8 @@ import 'package:studyflow/core/navigation/app_routes.dart';
 /// S7 Agregar: hoja inferior para elegir entre una tarea o un bloque de
 /// estudio. Cierra la hoja y abre la pantalla elegida.
 Future<void> showAddSheet(BuildContext context) {
+  // Primero se cierra la hoja (sheetContext) y después se navega con el
+  // context del calendario; si no, la pantalla nueva queda debajo de la hoja.
   void open(BuildContext sheetContext, String route) {
     Navigator.pop(sheetContext);
     Navigator.pushNamed(context, route);
@@ -44,6 +46,7 @@ Future<void> showAddSheet(BuildContext context) {
   );
 }
 
+/// Una opción de la hoja: ícono, título, subtítulo y flecha.
 class _AddOption extends StatelessWidget {
   const _AddOption({
     required this.icon,

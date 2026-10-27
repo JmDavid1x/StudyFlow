@@ -42,6 +42,7 @@ class WeekStrip extends StatelessWidget {
   }
 }
 
+/// Un día de la franja: nombre corto, número y puntos de pendientes.
 class _DayChip extends StatelessWidget {
   const _DayChip({
     required this.day,
