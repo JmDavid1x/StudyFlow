@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/auth/ui/widgets/auth_layout.dart';
-import 'package:studyflow/features/auth/ui/widgets/auth_validators.dart';
+import 'package:studyflow/features/auth/domain/auth_validators.dart';
 
 /// Recuperar contraseña (Figma 06): se pide el correo y se envía un enlace.
 /// Pasa el correo a Correo enviado (Figma 07) para mostrarlo allá.

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/auth/ui/widgets/auth_layout.dart';
-import 'package:studyflow/features/auth/ui/widgets/auth_validators.dart';
+import 'package:studyflow/features/auth/domain/auth_validators.dart';
 import 'package:studyflow/features/auth/ui/widgets/university_sheet.dart';
 
 /// Registro (Figma 04): nombre, correo institucional, contraseña y
