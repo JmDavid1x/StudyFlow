@@ -34,15 +34,23 @@ class PercentStepper extends StatelessWidget {
           SfIconButton(
             icon: Icons.remove,
             tooltip: 'Bajar porcentaje',
-            onPressed: value - step >= min ? () => onChanged(value - step) : null,
+            onPressed: value - step >= min
+                ? () => onChanged(value - step)
+                : null,
           ),
           Expanded(
-            child: Text('$value %', textAlign: TextAlign.center, style: SfTypography.number),
+            child: Text(
+              '$value %',
+              textAlign: TextAlign.center,
+              style: SfTypography.number,
+            ),
           ),
           SfIconButton(
             icon: Icons.add,
             tooltip: 'Subir porcentaje',
-            onPressed: value + step <= max ? () => onChanged(value + step) : null,
+            onPressed: value + step <= max
+                ? () => onChanged(value + step)
+                : null,
           ),
         ],
       ),
