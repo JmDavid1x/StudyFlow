@@ -58,19 +58,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   /// Con un correo institucional se preselecciona su universidad.
-  void _onEmailChanged(String value) {
-    final universities = context.read<AuthBloc>().state.universidades;
-    final match = universidadPorCorreo(value, universities);
-    if (match != null && _university == null) {
+  void _onEmailChanged(String value) => _preselect(context.read<AuthBloc>().state.universidades);
+
+  void _preselect(List<Universidad> universities) {
+    final match = universidadPorCorreo(_email.text, universities);
+    if (match != null && match != _university) {
       setState(() => _university = match);
-    } else {
-      _refresh(value);
+    } else if (_triedToSubmit) {
+      setState(() {});
     }
   }
 
   Future<void> _pickUniversity() async {
     final universities = context.read<AuthBloc>().state.universidades;
     if (universities.isEmpty) {
+      showAuthInfo(context, 'Cargando universidades… intenta de nuevo en un momento.');
       context.read<AuthBloc>().add(const UniversidadesPedidas());
       return;
     }
@@ -79,6 +81,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _submit() {
+    // Evita mandar el formulario dos veces (botón + Enter del teclado).
+    if (context.read<AuthBloc>().state.cargando(AccionAuth.registro)) return;
     setState(() => _triedToSubmit = true);
     final hasErrors = [_nameError, _emailError, _passwordError, _universityError].any((e) => e != null);
     if (hasErrors) return;
@@ -87,12 +91,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           nombre: _name.text,
           correo: _email.text,
           contrasena: _password.text,
-          universidadId: _university?.id,
+          universidad: _university,
         ));
   }
 
   void _onState(BuildContext context, AuthState state) {
-    if (state.error(AccionAuth.registro)) {
+    if (state.error(AccionAuth.universidades)) {
+      showAuthError(context, state.mensaje);
+    } else if (state.error(AccionAuth.registro)) {
       showAuthError(context, state.mensaje);
     } else if (state.exito(AccionAuth.registro)) {
       if (state.resultadoRegistro == ResultadoRegistro.confirmarCorreo) {
@@ -110,9 +116,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final universityError = _show(_universityError);
     final loading = context.select((AuthBloc bloc) => bloc.state.cargando(AccionAuth.registro));
 
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (before, now) => now.accion == AccionAuth.registro && before.estado != now.estado,
-      listener: _onState,
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (before, now) =>
+              (now.accion == AccionAuth.registro || now.accion == AccionAuth.universidades) &&
+              (before.estado != now.estado || before.accion != now.accion),
+          listener: _onState,
+        ),
+        // Si las universidades llegan después de escribir el correo, se preselecciona igual.
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (before, now) => before.universidades != now.universidades,
+          listener: (_, state) => _preselect(state.universidades),
+        ),
+      ],
       child: _buildForm(passwordError, universityError, loading),
     );
   }

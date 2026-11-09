@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 import 'package:studyflow/features/auth/ui/widgets/auth_layout.dart';
+import 'package:studyflow/features/auth/ui/widgets/auth_messages.dart';
 
 /// Correo enviado (Figma 07). Confirma a qué correo se mandó el enlace,
-/// deja reenviarlo y vuelve al inicio de sesión. Recibe el correo (String)
-/// como argumento de la ruta.
+/// deja reenviarlo (pide otro a Supabase) y vuelve al inicio de sesión.
+/// Recibe el correo (String) como argumento de la ruta.
 class EmailSentScreen extends StatelessWidget {
   const EmailSentScreen({super.key});
 
@@ -17,8 +20,15 @@ class EmailSentScreen extends StatelessWidget {
     final args = ModalRoute.of(context)?.settings.arguments;
     final email = args is String && args.isNotEmpty ? args : null;
     final destination = email ?? 'tu correo';
+    final resending = context.select((AuthBloc bloc) => bloc.state.cargando(AccionAuth.recuperacion));
 
-    return AuthLayout(
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (before, now) => now.accion == AccionAuth.recuperacion && before.estado != now.estado,
+      listener: (context, state) {
+        if (state.exito(AccionAuth.recuperacion)) showAuthInfo(context, 'Te enviamos otro enlace a $destination');
+        if (state.error(AccionAuth.recuperacion)) showAuthError(context, state.mensaje);
+      },
+      child: AuthLayout(
       actions: [
         SfButton(
           label: 'Volver a iniciar sesión',
@@ -28,9 +38,10 @@ class EmailSentScreen extends StatelessWidget {
         SfButton(
           label: 'Reenviar el enlace',
           variant: SfButtonVariant.ghost,
-          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Te enviamos otro enlace a $destination')),
-          ),
+          isLoading: resending,
+          onPressed: email == null || resending
+              ? null
+              : () => context.read<AuthBloc>().add(RecuperacionPedida(email)),
         ),
       ],
       children: [
@@ -72,6 +83,7 @@ class EmailSentScreen extends StatelessWidget {
           ),
         ),
       ],
+      ),
     );
   }
 }

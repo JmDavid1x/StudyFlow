@@ -4,7 +4,7 @@ part of 'auth_bloc.dart';
 enum Sesion { desconocida, activa, cerrada, recuperacion }
 
 /// Qué acción de las pantallas de acceso se está haciendo.
-enum AccionAuth { ninguna, registro, inicioSesion, recuperacion, cambioContrasena, cierreSesion }
+enum AccionAuth { ninguna, universidades, registro, inicioSesion, recuperacion, cambioContrasena, cierreSesion }
 
 /// En qué va esa acción.
 enum EstadoAccion { inactiva, cargando, exito, error }

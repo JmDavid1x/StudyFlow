@@ -46,19 +46,45 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final ObtenerUniversidades _universidades;
   StreamSubscription<EventoSesion>? _suscripcion;
 
+  /// Al abrir la app: ¿había sesión guardada? Si sí, trae el perfil para que
+  /// el Splash sepa si ir a Inicio o a la configuración inicial.
   Future<void> _onIniciado(AuthIniciado event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(sesion: _repository.haySesion ? Sesion.activa : Sesion.cerrada));
     await _suscripcion?.cancel();
-    _suscripcion = _repository.eventos.listen((evento) => add(_SesionCambio(evento)));
+    _suscripcion = _repository.eventos.listen(
+      (evento) => add(_SesionCambio(evento)),
+      // Si falla el refresco del token, Supabase avisa por aquí; lo tratamos
+      // como "sin sesión" en vez de dejar un error sin manejar.
+      onError: (Object _) => add(const _SesionCambio(EventoSesion.cierre)),
+    );
+    if (!_repository.haySesion) {
+      emit(state.copyWith(sesion: Sesion.cerrada));
+      return;
+    }
+    emit(state.copyWith(sesion: Sesion.activa, perfil: await _perfilSinFallar()));
   }
 
   void _onSesionCambio(_SesionCambio event, Emitter<AuthState> emit) {
-    final sesion = switch (event.evento) {
-      EventoSesion.inicio => Sesion.activa,
-      EventoSesion.cierre => Sesion.cerrada,
-      EventoSesion.recuperacion => Sesion.recuperacion,
-    };
-    emit(state.copyWith(sesion: sesion));
+    switch (event.evento) {
+      case EventoSesion.inicio:
+        if (state.sesion != Sesion.recuperacion) emit(state.copyWith(sesion: Sesion.activa));
+      case EventoSesion.recuperacion:
+        emit(state.copyWith(sesion: Sesion.recuperacion));
+      case EventoSesion.cierre:
+        // Estado limpio: el siguiente usuario no hereda el perfil del anterior.
+        if (state.sesion != Sesion.cerrada) {
+          emit(AuthState(sesion: Sesion.cerrada, universidades: state.universidades));
+        }
+    }
+  }
+
+  /// El perfil se pide aparte: si falla (por ejemplo, sin red justo después
+  /// de entrar), la sesión igual quedó iniciada y no se muestra un error falso.
+  Future<Perfil?> _perfilSinFallar() async {
+    try {
+      return await _repository.perfilActual();
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _onUniversidades(UniversidadesPedidas event, Emitter<AuthState> emit) async {
@@ -66,7 +92,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       emit(state.copyWith(universidades: await _universidades()));
     } catch (e) {
-      emit(state.copyWith(accion: AccionAuth.registro, estado: EstadoAccion.error, mensaje: mensajeDeError(e)));
+      emit(state.copyWith(accion: AccionAuth.universidades, estado: EstadoAccion.error, mensaje: mensajeDeError(e)));
     }
   }
 
@@ -77,9 +103,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         nombre: event.nombre,
         correo: event.correo,
         contrasena: event.contrasena,
-        universidadId: event.universidadId,
+        universidad: event.universidad,
       );
-      final perfil = resultado == ResultadoRegistro.conSesion ? await _repository.perfilActual() : null;
+      final perfil = resultado == ResultadoRegistro.conSesion ? await _perfilSinFallar() : null;
       emit(state.copyWith(
         accion: AccionAuth.registro,
         estado: EstadoAccion.exito,
@@ -95,7 +121,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(accion: AccionAuth.inicioSesion, estado: EstadoAccion.cargando));
     try {
       await _iniciarSesion(correo: event.correo, contrasena: event.contrasena);
-      final perfil = await _repository.perfilActual();
+      final perfil = await _perfilSinFallar();
       emit(state.copyWith(accion: AccionAuth.inicioSesion, estado: EstadoAccion.exito, perfil: perfil));
     } catch (e) {
       emit(state.copyWith(accion: AccionAuth.inicioSesion, estado: EstadoAccion.error, mensaje: mensajeDeError(e)));

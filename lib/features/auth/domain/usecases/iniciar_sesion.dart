@@ -7,9 +7,9 @@ class IniciarSesion {
 
   final AuthRepository _repository;
 
-  Future<void> call({required String correo, required String contrasena}) {
+  Future<void> call({required String correo, required String contrasena}) async {
     final error = AuthValidators.email(correo) ?? AuthValidators.password(contrasena);
     if (error != null) throw AppException(error);
-    return _repository.iniciarSesion(correo: correo.trim().toLowerCase(), contrasena: contrasena);
+    await _repository.iniciarSesion(correo: correo.trim().toLowerCase(), contrasena: contrasena);
   }
 }

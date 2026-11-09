@@ -33,28 +33,42 @@ flutter pub get
 flutter run
 ```
 
-Al abrir la app, cualquier pantalla en construcción tiene el botón **Ver todas las pantallas**, que lleva al índice de pantallas y a la galería del design system.
+La app ya está conectada al proyecto de Supabase (`lib/core/supabase/supabase_config.dart`), no hay que configurar nada.
+
+Para probar con datos: regístrate con tu correo institucional, deja presionado el logo en **Iniciar sesión** (solo en modo debug) y toca **Cargar datos de ejemplo**. Eso crea en tu cuenta el semestre del prototipo: materias, tareas, un examen, bloques de estudio y notificaciones.
+
+Para revisar el código: `flutter analyze` y `flutter test`. GitHub corre los dos en cada PR (`.github/workflows/flutter.yml`).
 
 ## Estructura
 
 ```
 lib/
+  main.dart, app.dart   arranque: Supabase, tema, rutas y el AuthBloc de toda la app
   core/design_system/   tokens, tema y componentes (ver docs/design-system.md)
-  core/navigation/      rutas, barra inferior y pantallas temporales
-  core/demo/            datos de ejemplo del Sprint 1
+  core/navigation/      rutas y barra inferior
+  core/data/            modelos compartidos: una clase por tabla de Supabase
+  core/supabase/        conexión y traducción de errores de Supabase
+  core/errors/          AppException y mensajeDeError (Dart puro)
   features/<feature>/   una carpeta por parte de la app (auth, subjects, tasks...)
-docs/                   design system, reparto del sprint y flujo de Git
+    domain/             repositorio abstracto, casos de uso y reglas (Dart puro)
+    data/               implementación del repositorio con Supabase
+    ui/                 bloc/, screens/, widgets/
+supabase/migrations/    el esquema SQL: tablas, seguridad (RLS), triggers y funciones
+test/                   tests de modelos, casos de uso, Blocs y flujos de pantalla
+docs/                   design system, reparto de cada sprint, base de datos y flujo de Git
 ```
 
 ## Documentos
 
 - [Design system](docs/design-system.md)
 - [Sprint 1: reparto y fechas](docs/sprint-1/reparto.md)
+- [Sprint 2: reglas y reparto](docs/sprint-2/reparto.md)
+- [Base de datos (Supabase)](docs/sprint-2/base-de-datos.md)
 - [Cómo trabajamos con Git](docs/flujo-git.md)
 
 ## Equipo
 
-Jose David Mayor López, Miguel, Perez, Camilo y Santiago.
+Jose David Mayor López, Miguel, Alejandro Pérez, Camilo y Santiago.
 
 ---
 

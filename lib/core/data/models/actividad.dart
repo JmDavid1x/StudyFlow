@@ -120,6 +120,9 @@ class Actividad extends Equatable {
         'notas': notas,
       };
 
+  /// Copia con cambios. Como `null` significa "no cambiar", los campos que
+  /// pueden quedar vacíos se borran con las banderas `sin...` (por ejemplo,
+  /// al volver una tarea examen: `copyWith(tipo: examen, sinCanal: true)`).
   Actividad copyWith({
     String? componenteId,
     String? titulo,
@@ -133,6 +136,10 @@ class Actividad extends Equatable {
     bool? recordatorio,
     String? notas,
     DateTime? completadaEn,
+    bool sinCanal = false,
+    bool sinLugar = false,
+    bool sinNotas = false,
+    bool sinCompletadaEn = false,
   }) =>
       Actividad(
         id: id,
@@ -140,14 +147,14 @@ class Actividad extends Equatable {
         titulo: titulo ?? this.titulo,
         tipo: tipo ?? this.tipo,
         fechaLimite: fechaLimite ?? this.fechaLimite,
-        canalEntrega: canalEntrega ?? this.canalEntrega,
-        lugar: lugar ?? this.lugar,
+        canalEntrega: sinCanal ? null : canalEntrega ?? this.canalEntrega,
+        lugar: sinLugar ? null : lugar ?? this.lugar,
         porcentaje: porcentaje ?? this.porcentaje,
         prioridad: prioridad ?? this.prioridad,
         estado: estado ?? this.estado,
         recordatorio: recordatorio ?? this.recordatorio,
-        notas: notas ?? this.notas,
-        completadaEn: completadaEn ?? this.completadaEn,
+        notas: sinNotas ? null : notas ?? this.notas,
+        completadaEn: sinCompletadaEn ? null : completadaEn ?? this.completadaEn,
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
         componenteNombre: componenteNombre,
@@ -160,5 +167,6 @@ class Actividad extends Equatable {
   List<Object?> get props => [
         id, componenteId, titulo, tipo, fechaLimite, canalEntrega, lugar, porcentaje,
         prioridad, estado, recordatorio, notas, completadaEn, creadoEn, actualizadoEn,
+        componenteNombre, materiaId, materiaNombre, materiaColorHex,
       ];
 }

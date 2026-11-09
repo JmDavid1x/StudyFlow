@@ -22,16 +22,17 @@ final class RegistroPedido extends AuthEvent {
     required this.nombre,
     required this.correo,
     required this.contrasena,
-    required this.universidadId,
+    required this.universidad,
   });
 
   final String nombre;
   final String correo;
   final String contrasena;
-  final String? universidadId;
+  final Universidad? universidad;
 
+  // La contraseña no va en props: así nunca aparece en logs ni en comparaciones.
   @override
-  List<Object?> get props => [nombre, correo, universidadId];
+  List<Object?> get props => [nombre, correo, universidad];
 }
 
 final class InicioSesionPedido extends AuthEvent {

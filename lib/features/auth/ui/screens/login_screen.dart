@@ -42,6 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submit() {
+    // Evita mandar el formulario dos veces (botón + Enter del teclado).
+    if (context.read<AuthBloc>().state.cargando(AccionAuth.inicioSesion)) return;
     setState(() => _triedToSubmit = true);
     if (_emailError != null || _passwordError != null) return;
     FocusScope.of(context).unfocus();
@@ -52,7 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (state.error(AccionAuth.inicioSesion)) {
       showAuthError(context, state.mensaje);
     } else if (state.exito(AccionAuth.inicioSesion)) {
-      // Si no terminó la configuración inicial, la retoma (Figma 08).
+      // Si no terminó la configuración inicial, la retoma (Figma 08). Si el
+      // perfil no cargó (red), entra a la app y cada pestaña reintenta.
       final configurado = state.perfil?.configuracionCompleta ?? true;
       Navigator.pushNamedAndRemoveUntil(
         context,
