@@ -1,13 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 import 'package:studyflow/features/auth/ui/widgets/brand_mark.dart';
 
-/// Splash (Figma 01). Muestra la marca un momento y pasa al onboarding.
-/// Tocar la pantalla salta la espera.
+/// Splash (Figma 01). Muestra la marca un momento mientras el AuthBloc
+/// revisa si había sesión guardada:
+/// - con sesión y configuración terminada → Inicio;
+/// - con sesión pero sin configurar → configuración inicial (Figma 08);
+/// - sin sesión → onboarding.
+/// Tocar la pantalla salta la espera de la marca.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -32,10 +38,26 @@ class _SplashScreenState extends State<SplashScreen> {
     super.dispose();
   }
 
-  void _goNext() {
+  bool _leaving = false;
+
+  Future<void> _goNext() async {
     _timer?.cancel();
+    if (_leaving) return;
+    _leaving = true;
+    final bloc = context.read<AuthBloc>();
+    // Si el AuthBloc todavía no sabe si hay sesión, se espera a que lo sepa.
+    final state = bloc.state.sesion == Sesion.desconocida
+        ? await bloc.stream.firstWhere((s) => s.sesion != Sesion.desconocida)
+        : bloc.state;
     if (!mounted) return;
-    Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
+
+    if (state.sesion != Sesion.activa) {
+      Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
+    } else if (state.perfil?.configuracionCompleta == false) {
+      Navigator.pushReplacementNamed(context, AppRoutes.setupSubjects);
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.main, arguments: AppTabs.home);
+    }
   }
 
   @override

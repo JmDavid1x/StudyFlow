@@ -22,8 +22,14 @@ class _StudyFlowAppState extends State<StudyFlowApp> {
   final _navigatorKey = GlobalKey<NavigatorState>();
 
   void _onSessionChanged(BuildContext context, AuthState state) {
-    // Cerró sesión (desde Perfil) o la sesión venció: vuelve al login sin historial.
-    _navigatorKey.currentState?.pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+    final navigator = _navigatorKey.currentState;
+    if (state.sesion == Sesion.recuperacion) {
+      // Abrió el enlace del correo: pide la contraseña nueva.
+      navigator?.pushNamedAndRemoveUntil(AppRoutes.newPassword, (_) => false);
+    } else {
+      // Cerró sesión (desde Perfil) o la sesión venció: vuelve al login sin historial.
+      navigator?.pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+    }
   }
 
   @override
@@ -43,7 +49,9 @@ class _StudyFlowAppState extends State<StudyFlowApp> {
         routes: AppRouter.routes,
         onUnknownRoute: AppRouter.unknown,
         builder: (context, child) => BlocListener<AuthBloc, AuthState>(
-          listenWhen: (before, now) => before.sesion == Sesion.activa && now.sesion == Sesion.cerrada,
+          listenWhen: (before, now) =>
+              (now.sesion == Sesion.recuperacion && before.sesion != Sesion.recuperacion) ||
+              (now.sesion == Sesion.cerrada && before.sesion != Sesion.cerrada && before.sesion != Sesion.desconocida),
           listener: _onSessionChanged,
           child: child!,
         ),

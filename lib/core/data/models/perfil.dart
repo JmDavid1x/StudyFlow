@@ -25,7 +25,7 @@ class Perfil extends Equatable {
     final universidad = anidado(map['universidades']);
     return Perfil(
       id: map['id'] as String,
-      universidadId: map['universidad_id'] as String,
+      universidadId: map['universidad_id'] as String?,
       nombre: map['nombre'] as String,
       correo: map['correo'] as String,
       programa: map['programa'] as String?,
@@ -37,7 +37,8 @@ class Perfil extends Equatable {
   }
 
   final String id;
-  final String universidadId;
+  /// Nulo si se registró con un correo que no es de una universidad conocida.
+  final String? universidadId;
   final String nombre;
   final String correo;
   final String? programa;
@@ -53,6 +54,28 @@ class Perfil extends Equatable {
   /// Primer nombre para el saludo de Inicio: "Hola, Santiago".
   String get primerNombre => nombre.trim().split(' ').first;
 
+  /// Lo único que el usuario puede cambiar de su perfil (la base no deja
+  /// cambiar el correo ni la universidad desde la app).
+  Map<String, dynamic> toUpdate() => {
+        'nombre': nombre,
+        'programa': programa,
+        'semestre': semestre,
+        'configuracion_completa': configuracionCompleta,
+      };
+
+  Perfil copyWith({String? nombre, String? programa, int? semestre, bool? configuracionCompleta}) => Perfil(
+        id: id,
+        universidadId: universidadId,
+        nombre: nombre ?? this.nombre,
+        correo: correo,
+        programa: programa ?? this.programa,
+        semestre: semestre ?? this.semestre,
+        configuracionCompleta: configuracionCompleta ?? this.configuracionCompleta,
+        creadoEn: creadoEn,
+        universidad: universidad,
+      );
+
   @override
-  List<Object?> get props => [id, universidadId, nombre, correo, programa, semestre, configuracionCompleta, creadoEn];
+  List<Object?> get props =>
+      [id, universidadId, nombre, correo, programa, semestre, configuracionCompleta, creadoEn, universidad];
 }

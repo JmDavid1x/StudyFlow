@@ -33,7 +33,7 @@ void main() {
         nombre: '  Santiago García ',
         correo: ' Santiago@U.Icesi.edu.co ',
         contrasena: 'clave1234',
-        universidadId: 'u1',
+        universidad: _icesi,
       );
 
       expect(resultado, ResultadoRegistro.conSesion);
@@ -45,13 +45,13 @@ void main() {
           )).called(1);
     });
 
-    test('no llama a Supabase si la contraseña es débil', () {
-      expect(
-        () => RegistrarUsuario(repositorio)(
+    test('no llama a Supabase si la contraseña es débil', () async {
+      await expectLater(
+        RegistrarUsuario(repositorio)(
           nombre: 'Ana',
           correo: 'ana@u.icesi.edu.co',
           contrasena: 'corta',
-          universidadId: 'u1',
+          universidad: _icesi,
         ),
         throwsA(isA<AppException>()),
       );
@@ -63,15 +63,27 @@ void main() {
           ));
     });
 
-    test('pide la universidad', () {
-      expect(
-        () => RegistrarUsuario(repositorio)(
+    test('pide la universidad', () async {
+      await expectLater(
+        RegistrarUsuario(repositorio)(
           nombre: 'Ana',
           correo: 'ana@u.icesi.edu.co',
           contrasena: 'clave1234',
-          universidadId: null,
+          universidad: null,
         ),
         throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', 'Elige tu universidad')),
+      );
+    });
+
+    test('exige el correo de la universidad elegida', () async {
+      await expectLater(
+        RegistrarUsuario(repositorio)(
+          nombre: 'Ana',
+          correo: 'ana@gmail.com',
+          contrasena: 'clave1234',
+          universidad: _icesi,
+        ),
+        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', contains('u.icesi.edu.co'))),
       );
     });
   });
@@ -80,7 +92,7 @@ void main() {
     when(() => repositorio.iniciarSesion(correo: any(named: 'correo'), contrasena: any(named: 'contrasena')))
         .thenAnswer((_) async {});
 
-    expect(() => IniciarSesion(repositorio)(correo: 'sin-arroba', contrasena: 'x'), throwsA(isA<AppException>()));
+    await expectLater(IniciarSesion(repositorio)(correo: 'sin-arroba', contrasena: 'x'), throwsA(isA<AppException>()));
     await IniciarSesion(repositorio)(correo: 'Ana@uao.edu.co', contrasena: 'clave1234');
     verify(() => repositorio.iniciarSesion(correo: 'ana@uao.edu.co', contrasena: 'clave1234')).called(1);
   });
@@ -91,9 +103,9 @@ void main() {
     expect(correo, 'ana@uao.edu.co');
   });
 
-  test('CambiarContrasena exige que coincidan', () {
-    expect(
-      () => CambiarContrasena(repositorio)(nueva: 'clave1234', confirmacion: 'clave12345'),
+  test('CambiarContrasena exige que coincidan', () async {
+    await expectLater(
+      CambiarContrasena(repositorio)(nueva: 'clave1234', confirmacion: 'clave12345'),
       throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', 'Las contraseñas no coinciden')),
     );
   });
@@ -107,5 +119,6 @@ void main() {
   test('universidadPorCorreo detecta el dominio', () {
     expect(universidadPorCorreo('juan@u.icesi.edu.co', [_icesi, _uao]), _icesi);
     expect(universidadPorCorreo('juan@gmail.com', [_icesi, _uao]), isNull);
+    expect(universidadPorCorreo('profe@sistemas.u.icesi.edu.co', [_icesi, _uao]), _icesi);
   });
 }
