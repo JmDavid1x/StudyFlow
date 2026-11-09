@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/features/auth/domain/auth_repository.dart';
+import 'package:studyflow/features/auth/domain/auth_validators.dart';
+import 'package:studyflow/features/auth/domain/usecases/universidad_por_correo.dart';
+import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 import 'package:studyflow/features/auth/ui/widgets/auth_layout.dart';
-import 'package:studyflow/features/auth/ui/widgets/auth_validators.dart';
+import 'package:studyflow/features/auth/ui/widgets/auth_messages.dart';
 import 'package:studyflow/features/auth/ui/widgets/university_sheet.dart';
 
-/// Registro (Figma 04): nombre, correo institucional, contraseña y
-/// universidad. Los errores aparecen después del primer intento y se
-/// actualizan mientras se escribe. Al crear la cuenta empieza la
-/// configuración inicial (Figma 08).
+/// Registro (Figma 04): crea la cuenta en Supabase Auth; la base crea el
+/// perfil con el nombre y la universidad. Los errores aparecen después del
+/// primer intento y se actualizan mientras se escribe. Al crear la cuenta
+/// empieza la configuración inicial (Figma 08).
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -21,10 +27,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  String? _university;
+  Universidad? _university;
 
   /// Los errores solo se muestran después de tocar "Crear cuenta".
   bool _triedToSubmit = false;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<AuthBloc>().add(const UniversidadesPedidas());
+  }
 
   @override
   void dispose() {
@@ -45,8 +57,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_triedToSubmit) setState(() {});
   }
 
+  /// Con un correo institucional se preselecciona su universidad.
+  void _onEmailChanged(String value) {
+    final universities = context.read<AuthBloc>().state.universidades;
+    final match = universidadPorCorreo(value, universities);
+    if (match != null && _university == null) {
+      setState(() => _university = match);
+    } else {
+      _refresh(value);
+    }
+  }
+
   Future<void> _pickUniversity() async {
-    final picked = await showUniversitySheet(context, selected: _university);
+    final universities = context.read<AuthBloc>().state.universidades;
+    if (universities.isEmpty) {
+      context.read<AuthBloc>().add(const UniversidadesPedidas());
+      return;
+    }
+    final picked = await showUniversitySheet(context, universities: universities, selected: _university);
     if (picked != null) setState(() => _university = picked);
   }
 
@@ -54,19 +82,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _triedToSubmit = true);
     final hasErrors = [_nameError, _emailError, _passwordError, _universityError].any((e) => e != null);
     if (hasErrors) return;
-    // Sprint 2: aquí se crea la cuenta en Supabase Auth y el perfil.
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.setupSubjects, (_) => false);
+    FocusScope.of(context).unfocus();
+    context.read<AuthBloc>().add(RegistroPedido(
+          nombre: _name.text,
+          correo: _email.text,
+          contrasena: _password.text,
+          universidadId: _university?.id,
+        ));
+  }
+
+  void _onState(BuildContext context, AuthState state) {
+    if (state.error(AccionAuth.registro)) {
+      showAuthError(context, state.mensaje);
+    } else if (state.exito(AccionAuth.registro)) {
+      if (state.resultadoRegistro == ResultadoRegistro.confirmarCorreo) {
+        showAuthInfo(context, 'Te enviamos un correo para confirmar tu cuenta. Después inicia sesión.');
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
+      } else {
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.setupSubjects, (_) => false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final passwordError = _show(_passwordError);
     final universityError = _show(_universityError);
+    final loading = context.select((AuthBloc bloc) => bloc.state.cargando(AccionAuth.registro));
 
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (before, now) => now.accion == AccionAuth.registro && before.estado != now.estado,
+      listener: _onState,
+      child: _buildForm(passwordError, universityError, loading),
+    );
+  }
+
+  Widget _buildForm(String? passwordError, String? universityError, bool loading) {
     return AuthLayout(
       showBack: true,
       actions: [
-        SfButton(label: 'Crear cuenta', onPressed: _submit),
+        SfButton(label: 'Crear cuenta', isLoading: loading, onPressed: loading ? null : _submit),
         const SizedBox(height: SfSpacing.xxs),
         SfButton(
           label: '¿Ya tienes cuenta? Inicia sesión',
@@ -98,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
           errorText: _show(_emailError),
-          onChanged: _refresh,
+          onChanged: _onEmailChanged,
         ),
         const SizedBox(height: SfSpacing.md),
         SfTextField(
@@ -118,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         SfPickerField(
           label: 'Universidad',
           icon: Icons.school_outlined,
-          value: _university,
+          value: _university?.nombre,
           placeholder: 'Elige tu universidad',
           onTap: _pickUniversity,
         ),
