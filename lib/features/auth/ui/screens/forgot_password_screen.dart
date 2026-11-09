@@ -30,6 +30,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   String? get _emailError => AuthValidators.email(_email.text);
 
   void _submit() {
+    if (context.read<AuthBloc>().state.cargando(AccionAuth.recuperacion)) return;
     setState(() => _triedToSubmit = true);
     if (_emailError != null) return;
     FocusScope.of(context).unfocus();

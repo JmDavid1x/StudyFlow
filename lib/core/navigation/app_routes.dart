@@ -11,6 +11,7 @@ abstract final class AppRoutes {
   static const login = '/login'; // 05
   static const forgotPassword = '/recuperar'; // 06
   static const emailSent = '/recuperar/enviado'; // 07
+  static const newPassword = '/recuperar/nueva'; // abre el enlace del correo
 
   // Contenedor con la barra inferior. Argumento: índice de la pestaña (int).
   static const main = '/app';

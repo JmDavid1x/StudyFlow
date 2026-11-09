@@ -8,10 +8,10 @@ class CambiarContrasena {
 
   final AuthRepository _repository;
 
-  Future<void> call({required String nueva, required String confirmacion}) {
+  Future<void> call({required String nueva, required String confirmacion}) async {
     final error = AuthValidators.newPassword(nueva) ??
         (nueva != confirmacion ? 'Las contraseñas no coinciden' : null);
     if (error != null) throw AppException(error);
-    return _repository.cambiarContrasena(nueva);
+    await _repository.cambiarContrasena(nueva);
   }
 }

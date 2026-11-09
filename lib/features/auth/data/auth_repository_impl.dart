@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:studyflow/core/data/data.dart';
@@ -49,9 +50,14 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> iniciarSesion({required String correo, required String contrasena}) =>
       _intentar(() => _db.auth.signInWithPassword(email: correo, password: contrasena));
 
+  /// A dónde lleva el enlace del correo: en el celular, al deep link de la
+  /// app (AndroidManifest / Info.plist); en Chrome, a la misma página.
+  /// Las dos direcciones deben estar en Supabase → Authentication → URL Configuration.
+  static String get enlaceRecuperacion => kIsWeb ? Uri.base.origin : 'studyflow://reset-password';
+
   @override
   Future<void> recuperarContrasena(String correo) =>
-      _intentar(() => _db.auth.resetPasswordForEmail(correo));
+      _intentar(() => _db.auth.resetPasswordForEmail(correo, redirectTo: enlaceRecuperacion));
 
   @override
   Future<void> cambiarContrasena(String nueva) =>
