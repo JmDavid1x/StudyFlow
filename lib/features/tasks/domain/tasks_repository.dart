@@ -6,6 +6,9 @@ abstract class TasksRepository {
   /// Actividades de las materias del periodo activo, ordenadas por fecha límite.
   Future<List<Actividad>> actividadesDelPeriodo();
 
+  /// Una actividad con su materia (para recargar el detalle). Nula si ya no existe.
+  Future<Actividad?> actividadPorId(String id);
+
   /// estado = completada, completada_en = ahora y cancela sus bloques pendientes.
   Future<void> completar(String id);
 

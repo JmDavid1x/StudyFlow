@@ -28,6 +28,16 @@ class TasksRepositoryImpl implements TasksRepository {
   }
 
   @override
+  Future<Actividad?> actividadPorId(String id) async {
+    try {
+      final fila = await _db.from('actividades').select(Actividad.select).eq('id', id).maybeSingle();
+      return fila == null ? null : Actividad.fromMap(fila);
+    } catch (e) {
+      throw AppException(mensajeDeError(e));
+    }
+  }
+
+  @override
   Future<void> completar(String id) async {
     try {
       await _db

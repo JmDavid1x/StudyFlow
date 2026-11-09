@@ -8,7 +8,6 @@ import 'package:studyflow/features/home/ui/widgets/home_demo.dart';
 import 'package:studyflow/features/home/ui/widgets/pending_block_banner.dart';
 import 'package:studyflow/features/home/ui/widgets/today_plan_card.dart';
 import 'package:studyflow/features/home/ui/widgets/weekly_progress_card.dart';
-import 'package:studyflow/features/tasks/ui/widgets/task_navigation.dart';
 
 /// Pestaña Inicio (Figma 11 · 12 · 16): resumen de la semana, el plan del
 /// asistente y las tareas de hoy y de los próximos días. La barra inferior la
@@ -61,11 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Espacio abajo para que el botón + no tape la última fila.
           padding: const EdgeInsets.fromLTRB(SfSpacing.screen, SfSpacing.md, SfSpacing.screen, SfSpacing.xxl * 2),
           children: [
-            _Greeting(
-              showAssistant: !empty,
-              hasNews: !empty,
-              onLongPressDate: kDebugMode ? _nextVariant : null,
-            ),
+            _Greeting(showAssistant: !empty, hasNews: !empty, onLongPressDate: kDebugMode ? _nextVariant : null),
             if (_variant == HomeVariant.normal) ...[
               const SizedBox(height: SfSpacing.md),
               PendingBlockBanner(onTap: () => Navigator.pushNamed(context, AppRoutes.studyBlock)),
@@ -104,20 +99,13 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: SfSpacing.md),
               WeeklyProgressCard(done: done + _checked.length, total: total),
               const SizedBox(height: SfSpacing.md),
-              TodayPlanCard(
-                plan: HomeDemo.plan,
-                onTalk: () => Navigator.pushNamed(context, AppRoutes.assistant),
-              ),
+              TodayPlanCard(plan: HomeDemo.plan, onTalk: () => Navigator.pushNamed(context, AppRoutes.assistant)),
               const SizedBox(height: SfSpacing.lg),
               SfSectionHeader(
                 title: 'Prioridades de hoy',
                 actionLabel: 'Ver todas',
-                onAction: () => Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.main,
-                  (_) => false,
-                  arguments: AppTabs.tasks,
-                ),
+                onAction: () =>
+                    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (_) => false, arguments: AppTabs.tasks),
               ),
               const SizedBox(height: SfSpacing.xs),
               if (today.isEmpty)
@@ -160,7 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
         subjectColor: task.color,
         done: done,
         trailing: done ? null : SfBadge.priority(task.priority),
-        onTap: () => openTaskDetail(context, task),
+        // Inicio aún usa datos de ejemplo: el detalle avisa que no la encuentra.
+        onTap: () => Navigator.pushNamed(context, task.isExam ? AppRoutes.examDetail : AppRoutes.taskDetail),
         onToggle: () => _toggle(task),
       ),
     );
@@ -169,11 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 /// Fecha, saludo y los botones del asistente y de notificaciones.
 class _Greeting extends StatelessWidget {
-  const _Greeting({
-    required this.showAssistant,
-    required this.hasNews,
-    this.onLongPressDate,
-  });
+  const _Greeting({required this.showAssistant, required this.hasNews, this.onLongPressDate});
 
   final bool showAssistant;
   final bool hasNews;
