@@ -7,7 +7,11 @@ import 'package:studyflow/core/design_system/design_system.dart';
 /// Es una acción secundaria, así que no compite con el botón principal de la
 /// pantalla.
 class DashedAddButton extends StatelessWidget {
-  const DashedAddButton({super.key, required this.label, required this.onPressed});
+  const DashedAddButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
 
   final String label;
   final VoidCallback onPressed;
@@ -35,11 +39,17 @@ class DashedAddButton extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.add, size: SfSpacing.lg - SfSpacing.xxs, color: SfColors.primaryLight),
+                  const Icon(
+                    Icons.add,
+                    size: SfSpacing.lg - SfSpacing.xxs,
+                    color: SfColors.primaryLight,
+                  ),
                   const SizedBox(width: SfSpacing.xs),
                   Text(
                     label,
-                    style: SfTypography.bodyStrong.copyWith(color: SfColors.primaryLight),
+                    style: SfTypography.bodyStrong.copyWith(
+                      color: SfColors.primaryLight,
+                    ),
                   ),
                 ],
               ),
@@ -73,7 +83,8 @@ class _DashedBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = _strokeWidth;
     final rect = (Offset.zero & size).deflate(_strokeWidth / 2);
-    final path = Path()..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
     for (final metric in path.computeMetrics()) {
       var distance = 0.0;
       while (distance < metric.length) {

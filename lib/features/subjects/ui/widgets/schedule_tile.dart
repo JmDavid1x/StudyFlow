@@ -6,7 +6,11 @@ import 'package:studyflow/features/subjects/ui/widgets/class_schedule.dart';
 /// Fila de un horario agregado (Figma 09): día, horas, salón y botón para
 /// quitarlo.
 class ScheduleTile extends StatelessWidget {
-  const ScheduleTile({super.key, required this.schedule, required this.onRemove});
+  const ScheduleTile({
+    super.key,
+    required this.schedule,
+    required this.onRemove,
+  });
 
   final ClassSchedule schedule;
   final VoidCallback onRemove;
@@ -27,7 +31,10 @@ class ScheduleTile extends StatelessWidget {
               color: SfColors.primarySoft,
               borderRadius: BorderRadius.circular(SfRadius.md),
             ),
-            child: const Icon(Icons.event_outlined, color: SfColors.primaryLight),
+            child: const Icon(
+              Icons.event_outlined,
+              color: SfColors.primaryLight,
+            ),
           ),
           const SizedBox(width: SfSpacing.sm),
           Expanded(

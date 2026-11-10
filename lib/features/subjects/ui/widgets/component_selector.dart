@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/features/subjects/ui/widgets/subjects_prototype_data.dart';
+import 'package:studyflow/core/data/data.dart';
 
 /// Elige a qué componente de la nota pertenece una actividad (Figma 23):
 /// tres tarjetas angostas con el porcentaje y el nombre.
@@ -13,7 +13,7 @@ class ComponentSelector extends StatelessWidget {
     required this.onChanged,
   });
 
-  final List<PrototypeComponent> components;
+  final List<ComponenteNota> components;
   final int selected;
   final ValueChanged<int> onChanged;
 
@@ -44,7 +44,7 @@ class _ComponentCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final PrototypeComponent component;
+  final ComponenteNota component;
   final bool selected;
   final VoidCallback onTap;
 
@@ -79,8 +79,10 @@ class _ComponentCard extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '${component.percent} %',
-                          style: SfTypography.h2.copyWith(color: SfColors.primaryLight),
+                          '${_porcentaje(component.porcentaje)} %',
+                          style: SfTypography.h2.copyWith(
+                            color: SfColors.primaryLight,
+                          ),
                         ),
                       ),
                     ),
@@ -89,10 +91,12 @@ class _ComponentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: SfSpacing.xxs),
                 Text(
-                  component.name,
+                  component.nombre,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SfTypography.caption.copyWith(color: SfColors.textPrimary),
+                  style: SfTypography.caption.copyWith(
+                    color: SfColors.textPrimary,
+                  ),
                 ),
               ],
             ),
@@ -102,3 +106,7 @@ class _ComponentCard extends StatelessWidget {
     );
   }
 }
+
+String _porcentaje(double valor) => valor == valor.roundToDouble()
+    ? valor.round().toString()
+    : valor.toStringAsFixed(1);

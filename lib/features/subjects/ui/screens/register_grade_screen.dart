@@ -1,146 +1,249 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/supabase/supabase_x.dart';
+import 'package:studyflow/features/subjects/data/subjects_repository_impl.dart';
+import 'package:studyflow/features/subjects/ui/bloc/register_grade_cubit.dart';
+import 'package:studyflow/features/subjects/ui/bloc/register_grade_state.dart';
 import 'package:studyflow/features/subjects/ui/widgets/component_selector.dart';
+import 'package:studyflow/features/subjects/ui/widgets/formato_materias.dart';
 import 'package:studyflow/features/subjects/ui/widgets/grade_stepper.dart';
-import 'package:studyflow/features/subjects/ui/widgets/subjects_prototype_data.dart';
 
 /// Registrar nota (Figma 23). Al guardar abre la hoja S3 "Nota registrada".
 ///
-/// Todo se elige con toques: actividad, componente y nota. El estado es solo
-/// de interfaz; en el Sprint 2 se guarda en Supabase.
-class RegisterGradeScreen extends StatefulWidget {
+/// Recibe una [Materia] (desde el detalle) o una [Actividad] (desde el detalle
+/// de examen: queda preseleccionada). Si llega sin argumento no se rompe: usa
+/// la primera materia del periodo.
+class RegisterGradeScreen extends StatelessWidget {
   const RegisterGradeScreen({super.key});
 
   @override
-  State<RegisterGradeScreen> createState() => _RegisterGradeScreenState();
+  Widget build(BuildContext context) {
+    final argumento = ModalRoute.of(context)?.settings.arguments;
+
+    return BlocProvider(
+      create: (_) => RegisterGradeCubit(
+        SubjectsRepositoryImpl(supabase),
+        materia: argumento is Materia ? argumento : null,
+        actividad: argumento is Actividad ? argumento : null,
+      )..cargar(),
+      child: const _RegisterGradeView(),
+    );
+  }
 }
 
-class _RegisterGradeScreenState extends State<RegisterGradeScreen> {
-  int _activity = 0;
-  int _component = 0;
-  int _tenths = 46;
+class _RegisterGradeView extends StatelessWidget {
+  const _RegisterGradeView();
 
-  @override
-  void initState() {
-    super.initState();
-    _component = _componentOf(_activity);
-  }
+  Future<void> _mostrarResultado(
+    BuildContext context,
+    NotaGuardada guardada,
+  ) async {
+    final antes = guardada.antes;
+    final despues = guardada.despues;
+    final mensaje = despues == null
+        ? 'Guardamos tu nota en ${guardada.materiaNombre}.'
+        : antes == null
+        ? 'Tu nota acumulada en ${guardada.materiaNombre} es ${notaTexto(despues)}.'
+        : (despues - antes).abs() < 0.05
+        ? 'Tu nota acumulada en ${guardada.materiaNombre} se mantiene en ${notaTexto(despues)}.'
+        : 'Tu nota acumulada en ${guardada.materiaNombre} ${despues > antes ? 'subió' : 'bajó'} '
+              'de ${notaTexto(antes)} a ${notaTexto(despues)}.';
 
-  /// Posición del componente al que pertenece la actividad.
-  int _componentOf(int activity) {
-    final index = prototypeComponents.indexWhere(
-      (component) => component.name == prototypeActivities[activity].component,
-    );
-    return index == -1 ? 0 : index;
-  }
-
-  void _selectActivity(int activity) {
-    setState(() {
-      _activity = activity;
-      _component = _componentOf(activity);
-    });
-  }
-
-  Future<void> _save() async {
-    final subject = subjectFromArguments(ModalRoute.of(context)?.settings.arguments);
     await showSfBottomSheet<void>(
       context,
       builder: (sheetContext) => SfResultSheet(
         title: 'Nota registrada',
-        message: 'Tu nota acumulada en ${subject.name} subió de 4.1 a 4.2.',
+        message: mensaje,
         primaryLabel: 'Listo',
         onPrimary: () => Navigator.pop(sheetContext),
       ),
     );
-    if (!mounted) return;
+    if (!context.mounted) return;
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final subject = subjectFromArguments(ModalRoute.of(context)?.settings.arguments);
-
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SfScreenHeader(title: 'Registrar nota', useCloseIcon: true),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  SfSpacing.screen,
-                  SfSpacing.xs,
-                  SfSpacing.screen,
-                  SfSpacing.lg,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      subject.name,
-                      style: SfTypography.label.copyWith(color: SfColors.primaryLight),
+    return BlocListener<RegisterGradeCubit, RegisterGradeState>(
+      listenWhen: (anterior, actual) {
+        if (actual is! RegisterGradeReady) return false;
+        final antes = anterior is RegisterGradeReady ? anterior : null;
+        return (antes?.guardada == null && actual.guardada != null) ||
+            (antes?.errorAlGuardar != actual.errorAlGuardar &&
+                actual.errorAlGuardar != null);
+      },
+      listener: (context, state) {
+        if (state is! RegisterGradeReady) return;
+        if (state.guardada != null) {
+          _mostrarResultado(context, state.guardada!);
+        } else if (state.errorAlGuardar != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.errorAlGuardar!)));
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              const SfScreenHeader(title: 'Registrar nota', useCloseIcon: true),
+              Expanded(
+                child: BlocBuilder<RegisterGradeCubit, RegisterGradeState>(
+                  builder: (context, state) => switch (state) {
+                    RegisterGradeLoading() => const SfLoadingState(
+                      message: 'Cargando las actividades...',
                     ),
-                    const SizedBox(height: SfSpacing.sm),
-                    Text('Actividad', style: SfTypography.label),
-                    const SizedBox(height: SfSpacing.xs),
-                    SfOptionCards<int>(
-                      columns: 1,
-                      selected: _activity,
-                      onChanged: _selectActivity,
-                      options: [
-                        for (var i = 0; i < prototypeActivities.length; i++)
-                          SfOption<int>(
-                            value: i,
-                            label: prototypeActivities[i].title,
-                            subtitle: prototypeActivities[i].detail,
-                          ),
-                      ],
+                    RegisterGradeError(:final mensaje) => Center(
+                      child: SingleChildScrollView(
+                        child: SfErrorState(
+                          message: mensaje,
+                          onRetry: () =>
+                              context.read<RegisterGradeCubit>().cargar(),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: SfSpacing.md),
-                    Text('Componente', style: SfTypography.label),
-                    const SizedBox(height: SfSpacing.xs),
-                    ComponentSelector(
-                      components: prototypeComponents,
-                      selected: _component,
-                      onChanged: (index) => setState(() => _component = index),
+                    RegisterGradeEmpty(:final mensaje) => Center(
+                      child: SingleChildScrollView(
+                        child: SfEmptyState(
+                          icon: Icons.checklist_rounded,
+                          title: 'Nada que calificar',
+                          message: mensaje,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: SfSpacing.md),
-                    Text('Nota obtenida', style: SfTypography.label),
-                    const SizedBox(height: SfSpacing.xs),
-                    GradeStepper(
-                      tenths: _tenths,
-                      onChanged: (value) => setState(() => _tenths = value),
+                    final RegisterGradeReady listo => _formulario(
+                      context,
+                      listo,
                     ),
-                    const SizedBox(height: SfSpacing.xs),
-                    Text('Escala de 0.0 a 5.0', style: SfTypography.caption),
-                    const SizedBox(height: SfSpacing.md),
-                    _AccumulatedPreview(goal: subject.goal),
-                  ],
+                  },
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                SfSpacing.screen,
-                SfSpacing.xs,
-                SfSpacing.screen,
-                SfSpacing.md,
-              ),
-              child: SfButton(label: 'Guardar nota', onPressed: _save),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _formulario(BuildContext context, RegisterGradeReady state) {
+    final cubit = context.read<RegisterGradeCubit>();
+    final componentes = state.componentes;
+    final indiceComponente = componentes.indexWhere(
+      (c) => c.id == state.componenteId,
+    );
+    final despues = state.despues;
+    final antes = state.antes;
+    final textoMeta = despues == null
+        ? null
+        : textoParaLaMeta(meta: state.materia.metaNota, resumen: despues);
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              SfSpacing.screen,
+              SfSpacing.xs,
+              SfSpacing.screen,
+              SfSpacing.lg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  state.materia.nombre,
+                  style: SfTypography.label.copyWith(
+                    color: SfColors.primaryLight,
+                  ),
+                ),
+                const SizedBox(height: SfSpacing.sm),
+                Text('Componente', style: SfTypography.label),
+                const SizedBox(height: SfSpacing.xs),
+                ComponentSelector(
+                  components: componentes,
+                  selected: indiceComponente < 0 ? 0 : indiceComponente,
+                  onChanged: (index) =>
+                      cubit.elegirComponente(componentes[index].id),
+                ),
+                const SizedBox(height: SfSpacing.md),
+                Text('Actividad', style: SfTypography.label),
+                const SizedBox(height: SfSpacing.xs),
+                if (state.visibles.isEmpty)
+                  Text(
+                    'Este componente aún no tiene actividades.',
+                    style: SfTypography.caption,
+                  )
+                else
+                  SfOptionCards<String>(
+                    columns: 1,
+                    selected: state.actividadId,
+                    onChanged: cubit.elegirActividad,
+                    options: [
+                      for (final item in state.visibles)
+                        SfOption<String>(
+                          value: item.actividad.id,
+                          label: item.actividad.titulo,
+                          subtitle: item.tieneNota
+                              ? 'Nota actual ${notaTexto(item.calificacion!.nota)}'
+                              : fechaCorta(item.actividad.fechaLimite),
+                        ),
+                    ],
+                  ),
+                const SizedBox(height: SfSpacing.md),
+                Text('Nota obtenida', style: SfTypography.label),
+                const SizedBox(height: SfSpacing.xs),
+                GradeStepper(
+                  tenths: state.decimas,
+                  onChanged: cubit.cambiarDecimas,
+                ),
+                const SizedBox(height: SfSpacing.xs),
+                Text('Escala de 0.0 a 5.0', style: SfTypography.caption),
+                if (despues != null) ...[
+                  const SizedBox(height: SfSpacing.md),
+                  _AccumulatedPreview(
+                    antes: antes.notaAcumulada,
+                    despues: despues.notaAcumulada,
+                    evaluado: despues.porcentajeEvaluado,
+                    textoMeta: textoMeta,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            SfSpacing.screen,
+            SfSpacing.xs,
+            SfSpacing.screen,
+            SfSpacing.md,
+          ),
+          child: SfButton(
+            label: 'Guardar nota',
+            onPressed: state.puedeGuardar ? cubit.guardar : null,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-/// "Así queda tu nota acumulada": cifras fijas del prototipo (4.1 a 4.2).
+/// "Así queda tu nota acumulada": antes y después de guardar.
 class _AccumulatedPreview extends StatelessWidget {
-  const _AccumulatedPreview({required this.goal});
+  const _AccumulatedPreview({
+    required this.antes,
+    required this.despues,
+    required this.evaluado,
+    required this.textoMeta,
+  });
 
-  final double goal;
+  final double? antes;
+  final double? despues;
+  final double evaluado;
+  final String? textoMeta;
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +260,7 @@ class _AccumulatedPreview extends StatelessWidget {
           Row(
             children: [
               Text(
-                '4.1',
+                notaTexto(antes),
                 style: SfTypography.h1.copyWith(color: SfColors.textSecondary),
               ),
               const SizedBox(width: SfSpacing.sm),
@@ -167,13 +270,12 @@ class _AccumulatedPreview extends StatelessWidget {
                 color: SfColors.textSecondary,
               ),
               const SizedBox(width: SfSpacing.sm),
-              Text('4.2', style: SfTypography.h1),
+              Text(notaTexto(despues), style: SfTypography.h1),
             ],
           ),
           const SizedBox(height: SfSpacing.xs),
           Text(
-            'Con el 65 % evaluado. Necesitarías 4.7 en el 35 % que falta para '
-            'tu meta de ${goal.toStringAsFixed(1)}.',
+            'Con el ${evaluado.round()} % evaluado.${textoMeta == null ? '' : ' $textoMeta.'}',
             style: SfTypography.body,
           ),
         ],
