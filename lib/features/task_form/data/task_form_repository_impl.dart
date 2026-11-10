@@ -18,7 +18,7 @@ class TaskFormRepositoryImpl implements TaskFormRepository {
           .from('materias')
           .select('${Materia.select}, periodos!inner(activo)')
           .eq('periodos.activo', true)
-          .order('nombre');
+          .order('nombre', ascending: true);
       return filas.map(Materia.fromMap).toList();
     } catch (e) {
       throw AppException(mensajeDeError(e));

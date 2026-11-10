@@ -58,7 +58,7 @@ class StudyBlocksRepositoryImpl implements StudyBlocksRepository {
           .from('bloques_estudio')
           .select(BloqueEstudio.select)
           .eq('actividad_id', actividadId)
-          .order('inicio');
+          .order('inicio', ascending: true);
       return filas.map(BloqueEstudio.fromMap).toList();
     } catch (e) {
       throw AppException(mensajeDeError(e));
@@ -114,7 +114,7 @@ class StudyBlocksRepositoryImpl implements StudyBlocksRepository {
           .from('actividades')
           .select(Actividad.selectPeriodoActivo)
           .eq('componentes_nota.materias.periodos.activo', true)
-          .order('fecha_limite');
+          .order('fecha_limite', ascending: true);
       return filas
           .map(Actividad.fromMap)
           .where((a) => !a.estado.estaCerrada)

@@ -37,7 +37,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
           .eq('componentes_nota.materias.periodos.activo', true)
           .gte('fecha_limite', desde.toUtc().toIso8601String())
           .lt('fecha_limite', hasta.toUtc().toIso8601String())
-          .order('fecha_limite');
+          .order('fecha_limite', ascending: true);
       return filas.map(Actividad.fromMap).toList();
     } catch (e) {
       throw AppException(mensajeDeError(e));
@@ -59,7 +59,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
           ])
           .gte('inicio', desde.toUtc().toIso8601String())
           .lt('inicio', hasta.toUtc().toIso8601String())
-          .order('inicio');
+          .order('inicio', ascending: true);
       return filas.map(BloqueEstudio.fromMap).toList();
     } catch (e) {
       throw AppException(mensajeDeError(e));
