@@ -14,16 +14,21 @@ class CrearMateria {
     List<HorarioClase> horarios,
     List<ComponenteNota> componentes,
   ) {
-    if (materia.nombre.trim().isEmpty) {
-      throw const AppException('Escribe el nombre de la materia.');
-    }
-    final meta = materia.metaNota;
-    if (meta != null && !notaValida(meta)) {
-      throw const AppException('La meta debe estar entre 0.0 y 5.0.');
-    }
-    if (!componentesSuman100(componentes.map((c) => c.porcentaje))) {
-      throw const AppException('Los componentes de la nota deben sumar 100 %.');
-    }
+    validarNuevaMateria(materia, componentes);
     return _repositorio.crearMateria(materia, horarios, componentes);
+  }
+}
+
+/// Reglas de una materia nueva; lanza `AppException` si alguna falla.
+void validarNuevaMateria(Materia materia, List<ComponenteNota> componentes) {
+  if (materia.nombre.trim().isEmpty) {
+    throw const AppException('Escribe el nombre de la materia.');
+  }
+  final meta = materia.metaNota;
+  if (meta != null && !notaValida(meta)) {
+    throw const AppException('La meta debe estar entre 0.0 y 5.0.');
+  }
+  if (!componentesSuman100(componentes.map((c) => c.porcentaje))) {
+    throw const AppException('Los componentes de la nota deben sumar 100 %.');
   }
 }

@@ -1,4 +1,5 @@
 import 'package:studyflow/core/data/data.dart';
+import 'package:studyflow/features/subjects/domain/calculo_notas.dart';
 
 const _dias = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
 
@@ -35,3 +36,19 @@ String fechaCorta(DateTime fecha) {
 
 /// 4.0 → "4.0"; nulo → "–".
 String notaTexto(double? nota) => nota == null ? '–' : nota.toStringAsFixed(1);
+
+/// Qué falta para la meta, en una frase; nulo si no hay meta.
+/// Ej.: "Necesitas 4.7 en el 35 % que falta".
+String? textoParaLaMeta({
+  required double? meta,
+  required ResumenNotas resumen,
+}) {
+  if (meta == null) return null;
+  final falta = resumen.notaQueFalta;
+  if (falta == null) return 'Ya evaluaste toda la materia';
+  if (resumen.metaInalcanzable)
+    return 'Tu meta ya no es alcanzable (necesitarías ${notaTexto(falta)})';
+  if (falta == 0) return 'Ya aseguraste tu meta';
+  final pendiente = (100 - resumen.porcentajeEvaluado).round();
+  return 'Necesitas ${notaTexto(falta)} en el $pendiente % que falta';
+}

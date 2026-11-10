@@ -19,22 +19,13 @@ class SubjectGradeCard extends StatelessWidget {
   final Materia materia;
   final ResumenNotas resumen;
 
-  /// Mensaje de lo que falta para la meta; nulo si no hay meta.
-  String? get _mensajeFalta {
-    if (materia.metaNota == null) return null;
-    final falta = resumen.notaQueFalta;
-    if (falta == null) return 'Ya evaluaste toda la materia';
-    if (resumen.metaInalcanzable)
-      return 'Tu meta ya no es alcanzable (necesitarías ${notaTexto(falta)})';
-    if (falta == 0) return 'Ya aseguraste tu meta';
-    final pendiente = (100 - resumen.porcentajeEvaluado).round();
-    return 'Necesitas ${notaTexto(falta)} en el $pendiente % que falta';
-  }
-
   @override
   Widget build(BuildContext context) {
     final evaluado = resumen.porcentajeEvaluado.round();
-    final mensajeFalta = _mensajeFalta;
+    final mensajeFalta = textoParaLaMeta(
+      meta: materia.metaNota,
+      resumen: resumen,
+    );
 
     return SfCard(
       child: Column(
