@@ -80,7 +80,9 @@ class _ComponentCard extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           '${component.percent} %',
-                          style: SfTypography.h2.copyWith(color: SfColors.primaryLight),
+                          style: SfTypography.h2.copyWith(
+                            color: SfColors.primaryLight,
+                          ),
                         ),
                       ),
                     ),
@@ -92,7 +94,9 @@ class _ComponentCard extends StatelessWidget {
                   component.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SfTypography.caption.copyWith(color: SfColors.textPrimary),
+                  style: SfTypography.caption.copyWith(
+                    color: SfColors.textPrimary,
+                  ),
                 ),
               ],
             ),

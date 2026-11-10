@@ -38,7 +38,9 @@ class SubjectColorPicker extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: i == selected ? SfColors.textPrimary : Colors.transparent,
+                        color: i == selected
+                            ? SfColors.textPrimary
+                            : Colors.transparent,
                         width: 2,
                       ),
                     ),

@@ -43,7 +43,9 @@ class _RegisterGradeScreenState extends State<RegisterGradeScreen> {
   }
 
   Future<void> _save() async {
-    final subject = subjectFromArguments(ModalRoute.of(context)?.settings.arguments);
+    final subject = subjectFromArguments(
+      ModalRoute.of(context)?.settings.arguments,
+    );
     await showSfBottomSheet<void>(
       context,
       builder: (sheetContext) => SfResultSheet(
@@ -59,7 +61,9 @@ class _RegisterGradeScreenState extends State<RegisterGradeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subject = subjectFromArguments(ModalRoute.of(context)?.settings.arguments);
+    final subject = subjectFromArguments(
+      ModalRoute.of(context)?.settings.arguments,
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -79,7 +83,9 @@ class _RegisterGradeScreenState extends State<RegisterGradeScreen> {
                   children: [
                     Text(
                       subject.name,
-                      style: SfTypography.label.copyWith(color: SfColors.primaryLight),
+                      style: SfTypography.label.copyWith(
+                        color: SfColors.primaryLight,
+                      ),
                     ),
                     const SizedBox(height: SfSpacing.sm),
                     Text('Actividad', style: SfTypography.label),

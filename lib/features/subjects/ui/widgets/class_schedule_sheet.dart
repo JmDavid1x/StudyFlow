@@ -52,7 +52,12 @@ class _ClassScheduleSheetState extends State<ClassScheduleSheet> {
   void _add() {
     Navigator.pop(
       context,
-      ClassSchedule(day: _day, start: _start, end: _end, room: _room.text.trim()),
+      ClassSchedule(
+        day: _day,
+        start: _start,
+        end: _end,
+        room: _room.text.trim(),
+      ),
     );
   }
 
@@ -64,7 +69,10 @@ class _ClassScheduleSheetState extends State<ClassScheduleSheet> {
       children: [
         Text('Agregar horario', style: SfTypography.h2),
         const SizedBox(height: SfSpacing.xxs),
-        Text('Agrega una fila por cada día que tengas clase.', style: SfTypography.caption),
+        Text(
+          'Agrega una fila por cada día que tengas clase.',
+          style: SfTypography.caption,
+        ),
         const SizedBox(height: SfSpacing.sm),
         Text('Día', style: SfTypography.label),
         const SizedBox(height: SfSpacing.xs),

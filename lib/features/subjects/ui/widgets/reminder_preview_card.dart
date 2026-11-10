@@ -19,7 +19,10 @@ class ReminderPreviewCard extends StatelessWidget {
               color: SfColors.primary,
               borderRadius: BorderRadius.circular(SfRadius.md),
             ),
-            child: const Icon(Icons.school_rounded, color: SfColors.textPrimary),
+            child: const Icon(
+              Icons.school_rounded,
+              color: SfColors.textPrimary,
+            ),
           ),
           const SizedBox(width: SfSpacing.sm),
           Expanded(
@@ -28,14 +31,22 @@ class ReminderPreviewCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text('StudyFlow', style: SfTypography.bodyStrong)),
+                    Expanded(
+                      child: Text('StudyFlow', style: SfTypography.bodyStrong),
+                    ),
                     Text('ahora', style: SfTypography.caption),
                   ],
                 ),
                 const SizedBox(height: SfSpacing.xxs),
-                Text('Mañana vence: Taller 3 de SQL', style: SfTypography.bodyStrong),
+                Text(
+                  'Mañana vence: Taller 3 de SQL',
+                  style: SfTypography.bodyStrong,
+                ),
                 const SizedBox(height: SfSpacing.xxs),
-                Text('Se entrega por INTU · 11:59 p. m.', style: SfTypography.caption),
+                Text(
+                  'Se entrega por INTU · 11:59 p. m.',
+                  style: SfTypography.caption,
+                ),
               ],
             ),
           ),

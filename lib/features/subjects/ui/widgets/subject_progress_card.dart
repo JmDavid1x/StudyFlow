@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/features/subjects/ui/widgets/subjects_prototype_data.dart';
+import 'package:studyflow/features/subjects/domain/resumen_semestre.dart';
+import 'package:studyflow/features/subjects/ui/widgets/formato_materias.dart';
 
 /// Tarjeta de una materia en la pestaña Materias (Figma 21): color, nombre,
 /// profesor, nota actual, meta y barra de avance hacia 5.0.
 class SubjectProgressCard extends StatelessWidget {
-  const SubjectProgressCard({super.key, required this.subject, this.onTap});
+  const SubjectProgressCard({super.key, required this.item, this.onTap});
 
   static const _maxGrade = 5.0;
 
-  final PrototypeSubject subject;
+  final MateriaConNota item;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final materia = item.materia;
+    final nota = item.resumen.notaAcumulada;
+    final meta = materia.metaNota;
+
     return SfCard(
       onTap: onTap,
       child: Column(
@@ -27,7 +32,7 @@ class SubjectProgressCard extends StatelessWidget {
                 Container(
                   width: SfSpacing.xxs,
                   decoration: BoxDecoration(
-                    color: subject.color,
+                    color: materia.color,
                     borderRadius: BorderRadius.circular(SfRadius.sm),
                   ),
                 ),
@@ -37,9 +42,11 @@ class SubjectProgressCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(subject.name, style: SfTypography.bodyStrong),
-                      const SizedBox(height: SfSpacing.xxs),
-                      Text(subject.professor, style: SfTypography.caption),
+                      Text(materia.nombre, style: SfTypography.bodyStrong),
+                      if (materia.profesor != null) ...[
+                        const SizedBox(height: SfSpacing.xxs),
+                        Text(materia.profesor!, style: SfTypography.caption),
+                      ],
                     ],
                   ),
                 ),
@@ -48,15 +55,21 @@ class SubjectProgressCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(subject.grade.toStringAsFixed(1), style: SfTypography.h2),
-                    Text('meta ${subject.goal.toStringAsFixed(1)}', style: SfTypography.caption),
+                    Text(notaTexto(nota), style: SfTypography.h2),
+                    Text(
+                      meta == null ? 'sin meta' : 'meta ${notaTexto(meta)}',
+                      style: SfTypography.caption,
+                    ),
                   ],
                 ),
               ],
             ),
           ),
           const SizedBox(height: SfSpacing.sm),
-          SfProgressBar(value: subject.grade / _maxGrade, color: subject.color),
+          SfProgressBar(
+            value: ((nota ?? 0) / _maxGrade).clamp(0.0, 1.0),
+            color: materia.color,
+          ),
         ],
       ),
     );

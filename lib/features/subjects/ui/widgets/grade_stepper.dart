@@ -6,7 +6,11 @@ import 'package:studyflow/features/subjects/ui/widgets/stepper_field.dart';
 /// No abre el teclado. Trabaja en décimas (46 = 4.6) para no acumular
 /// errores de decimales.
 class GradeStepper extends StatelessWidget {
-  const GradeStepper({super.key, required this.tenths, required this.onChanged});
+  const GradeStepper({
+    super.key,
+    required this.tenths,
+    required this.onChanged,
+  });
 
   static const _min = 0;
   static const _max = 50;

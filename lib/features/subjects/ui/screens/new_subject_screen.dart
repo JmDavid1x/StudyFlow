@@ -46,7 +46,9 @@ class _NewSubjectScreenState extends State<NewSubjectScreen> {
       room: 'Salón 401C',
     ),
   ];
-  final _percents = <int>[for (final component in prototypeComponents) component.percent];
+  final _percents = <int>[
+    for (final component in prototypeComponents) component.percent,
+  ];
 
   @override
   void dispose() {
@@ -65,7 +67,9 @@ class _NewSubjectScreenState extends State<NewSubjectScreen> {
   }
 
   void _changePercent(int index, int delta) {
-    setState(() => _percents[index] = (_percents[index] + delta).clamp(0, 100).toInt());
+    setState(
+      () => _percents[index] = (_percents[index] + delta).clamp(0, 100).toInt(),
+    );
   }
 
   @override
@@ -108,7 +112,8 @@ class _NewSubjectScreenState extends State<NewSubjectScreen> {
                     const SizedBox(height: SfSpacing.xs),
                     StepperField(
                       icon: Icons.menu_book_outlined,
-                      label: '$_credits ${_credits == 1 ? 'crédito' : 'créditos'}',
+                      label:
+                          '$_credits ${_credits == 1 ? 'crédito' : 'créditos'}',
                       decrementTooltip: 'Quitar un crédito',
                       incrementTooltip: 'Agregar un crédito',
                       onDecrement: _credits > _minCredits
@@ -139,7 +144,8 @@ class _NewSubjectScreenState extends State<NewSubjectScreen> {
                         child: SfEmptyState(
                           icon: Icons.event_outlined,
                           title: 'Aún no hay horarios',
-                          message: 'Toca "Agregar horario" para poner el día y la hora '
+                          message:
+                              'Toca "Agregar horario" para poner el día y la hora '
                               'de tus clases.',
                         ),
                       )
@@ -147,16 +153,23 @@ class _NewSubjectScreenState extends State<NewSubjectScreen> {
                       for (var i = 0; i < _schedules.length; i++) ...[
                         ScheduleTile(
                           schedule: _schedules[i],
-                          onRemove: () => setState(() => _schedules.removeAt(i)),
+                          onRemove: () =>
+                              setState(() => _schedules.removeAt(i)),
                         ),
                         const SizedBox(height: SfSpacing.xs),
                       ],
-                    DashedAddButton(label: 'Agregar horario', onPressed: _addSchedule),
+                    DashedAddButton(
+                      label: 'Agregar horario',
+                      onPressed: _addSchedule,
+                    ),
                     const SizedBox(height: SfSpacing.lg),
                     Text('Cómo se calcula la nota', style: SfTypography.label),
                     const SizedBox(height: SfSpacing.xs),
                     for (var i = 0; i < prototypeComponents.length; i++) ...[
-                      Text(prototypeComponents[i].name, style: SfTypography.caption),
+                      Text(
+                        prototypeComponents[i].name,
+                        style: SfTypography.caption,
+                      ),
                       const SizedBox(height: SfSpacing.xxs),
                       StepperField(
                         icon: Icons.percent_rounded,
@@ -208,7 +221,9 @@ class _NewSubjectScreenState extends State<NewSubjectScreen> {
               ),
               child: SfButton(
                 label: 'Guardar materia',
-                onPressed: _name.text.trim().isEmpty ? null : () => Navigator.pop(context),
+                onPressed: _name.text.trim().isEmpty
+                    ? null
+                    : () => Navigator.pop(context),
               ),
             ),
           ],

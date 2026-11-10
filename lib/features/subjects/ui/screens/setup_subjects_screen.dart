@@ -38,7 +38,9 @@ class SetupSubjectsScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Paso 1 de 2',
-                      style: SfTypography.caption.copyWith(color: SfColors.primaryLight),
+                      style: SfTypography.caption.copyWith(
+                        color: SfColors.primaryLight,
+                      ),
                     ),
                     const SizedBox(height: SfSpacing.xxs),
                     Text('Agrega tus materias', style: SfTypography.h1),
@@ -46,14 +48,17 @@ class SetupSubjectsScreen extends StatelessWidget {
                     Text(
                       'Con tu horario y los porcentajes calculamos tu nota y '
                       'organizamos tu semana.',
-                      style: SfTypography.body.copyWith(color: SfColors.textSecondary),
+                      style: SfTypography.body.copyWith(
+                        color: SfColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: SfSpacing.lg),
                     if (subjects.isEmpty)
                       const SfEmptyState(
                         icon: Icons.menu_book_outlined,
                         title: 'Aún no tienes materias',
-                        message: 'Toca "Agregar materia" para registrar la primera y '
+                        message:
+                            'Toca "Agregar materia" para registrar la primera y '
                             'calcular tu nota.',
                       )
                     else
@@ -83,7 +88,10 @@ class SetupSubjectsScreen extends StatelessWidget {
                 label: 'Continuar',
                 onPressed: subjects.isEmpty
                     ? null
-                    : () => Navigator.pushNamed(context, AppRoutes.setupReminders),
+                    : () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.setupReminders,
+                      ),
               ),
             ),
           ],

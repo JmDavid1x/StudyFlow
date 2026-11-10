@@ -39,7 +39,9 @@ class SetupRemindersScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Paso 2 de 2',
-                      style: SfTypography.caption.copyWith(color: SfColors.primaryLight),
+                      style: SfTypography.caption.copyWith(
+                        color: SfColors.primaryLight,
+                      ),
                     ),
                     const SizedBox(height: SfSpacing.xxl),
                     const Center(child: _ReminderBell()),
@@ -54,7 +56,9 @@ class SetupRemindersScreen extends StatelessWidget {
                       'Te avisamos un día antes de cada entrega y cuando el '
                       'asistente tenga tu plan del día.',
                       textAlign: TextAlign.center,
-                      style: SfTypography.body.copyWith(color: SfColors.textSecondary),
+                      style: SfTypography.body.copyWith(
+                        color: SfColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: SfSpacing.xl),
                     const ReminderPreviewCard(),
