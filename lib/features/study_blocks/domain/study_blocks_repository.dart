@@ -23,4 +23,11 @@ abstract class StudyBlocksRepository {
 
   /// Pasa la actividad de por_hacer a en_progreso.
   Future<void> marcarActividadEnProgreso(String actividadId);
+
+  /// La actividad completa (con su materia), para "Tarea vinculada".
+  Future<Actividad> actividad(String id);
+
+  /// Actividades del periodo activo que aún no se cierran, para elegir qué
+  /// preparar en un bloque nuevo. Ordenadas por fecha límite.
+  Future<List<Actividad>> actividadesAbiertas();
 }

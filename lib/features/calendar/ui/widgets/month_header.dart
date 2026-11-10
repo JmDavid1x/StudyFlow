@@ -21,10 +21,23 @@ class MonthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(CalendarLabels.monthYear(date), style: SfTypography.title)),
-        SfIconButton(icon: Icons.chevron_left, tooltip: 'Semana anterior', onPressed: onPrevious),
+        Expanded(
+          child: Text(
+            CalendarLabels.monthYear(date),
+            style: SfTypography.title,
+          ),
+        ),
+        SfIconButton(
+          icon: Icons.chevron_left,
+          tooltip: 'Semana anterior',
+          onPressed: onPrevious,
+        ),
         const SizedBox(width: SfSpacing.xs),
-        SfIconButton(icon: Icons.chevron_right, tooltip: 'Semana siguiente', onPressed: onNext),
+        SfIconButton(
+          icon: Icons.chevron_right,
+          tooltip: 'Semana siguiente',
+          onPressed: onNext,
+        ),
       ],
     );
   }

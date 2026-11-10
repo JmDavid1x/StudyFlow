@@ -47,10 +47,13 @@ class AgendaItem {
   /// "Avanzar en Taller 3", "Estudiar para Parcial 2", o el nombre de la
   /// tarea o la materia.
   String get title => switch (kind) {
-        AgendaKind.classSession => subject.name,
-        AgendaKind.studyBlock => task!.isExam ? 'Estudiar para ${task!.title}' : 'Avanzar en ${task!.title}',
-        _ => task!.title,
-      };
+    AgendaKind.classSession => subject.name,
+    AgendaKind.studyBlock =>
+      task!.isExam
+          ? 'Estudiar para ${task!.title}'
+          : 'Avanzar en ${task!.title}',
+    _ => task!.title,
+  };
 
   /// Las clases no se completan; lo demás queda pendiente hasta hacerlo.
   bool get isPending => kind != AgendaKind.classSession && !done;
@@ -59,15 +62,23 @@ class AgendaItem {
   int get durationMinutes {
     final finish = end;
     if (finish == null) return 0;
-    return (finish.hour * 60 + finish.minute) - (start.hour * 60 + start.minute);
+    return (finish.hour * 60 + finish.minute) -
+        (start.hour * 60 + start.minute);
   }
 }
 
-DemoSubject _subjectNamed(String name) => DemoData.subjects.firstWhere((s) => s.name == name);
+DemoSubject _subjectNamed(String name) =>
+    DemoData.subjects.firstWhere((s) => s.name == name);
 
-DemoTask _taskNamed(String title) => DemoData.tasks.firstWhere((t) => t.title == title);
+DemoTask _taskNamed(String title) =>
+    DemoData.tasks.firstWhere((t) => t.title == title);
 
-AgendaItem _class(String subject, DateTime day, TimeOfDay start, TimeOfDay end) {
+AgendaItem _class(
+  String subject,
+  DateTime day,
+  TimeOfDay start,
+  TimeOfDay end,
+) {
   final s = _subjectNamed(subject);
   return AgendaItem(
     kind: AgendaKind.classSession,
@@ -79,7 +90,13 @@ AgendaItem _class(String subject, DateTime day, TimeOfDay start, TimeOfDay end) 
   );
 }
 
-AgendaItem _block(String task, DateTime day, TimeOfDay start, TimeOfDay end, {bool byAssistant = true}) {
+AgendaItem _block(
+  String task,
+  DateTime day,
+  TimeOfDay start,
+  TimeOfDay end, {
+  bool byAssistant = true,
+}) {
   final t = _taskNamed(task);
   return AgendaItem(
     kind: AgendaKind.studyBlock,
@@ -118,7 +135,8 @@ abstract final class DemoAgenda {
   static final _thu = DateTime(2026, 9, 24);
   static final _fri = DateTime(2026, 9, 25);
 
-  static TimeOfDay _at(int hour, [int minute = 0]) => TimeOfDay(hour: hour, minute: minute);
+  static TimeOfDay _at(int hour, [int minute = 0]) =>
+      TimeOfDay(hour: hour, minute: minute);
 
   static final items = <AgendaItem>[
     // Lunes 21
@@ -144,17 +162,24 @@ abstract final class DemoAgenda {
 
   /// Lo que hay en [day], ordenado por hora.
   static List<AgendaItem> forDay(DateTime day) {
-    final list = items.where((item) => DateUtils.isSameDay(item.day, day)).toList()
-      ..sort((a, b) => (a.start.hour * 60 + a.start.minute).compareTo(b.start.hour * 60 + b.start.minute));
+    final list =
+        items.where((item) => DateUtils.isSameDay(item.day, day)).toList()
+          ..sort(
+            (a, b) => (a.start.hour * 60 + a.start.minute).compareTo(
+              b.start.hour * 60 + b.start.minute,
+            ),
+          );
     return list;
   }
 
   /// Primer bloque de la semana, para abrir el detalle sin argumentos.
-  static AgendaItem get firstBlock => items.firstWhere((item) => item.kind == AgendaKind.studyBlock);
+  static AgendaItem get firstBlock =>
+      items.firstWhere((item) => item.kind == AgendaKind.studyBlock);
 
   /// Cuántos bloques hay en la semana para preparar [task].
-  static int blocksFor(DemoTask task) =>
-      items.where((item) => item.kind == AgendaKind.studyBlock && item.task == task).length;
+  static int blocksFor(DemoTask task) => items
+      .where((item) => item.kind == AgendaKind.studyBlock && item.task == task)
+      .length;
 }
 
 /// "30 min", "1 h", "1 h 30 min".

@@ -19,7 +19,11 @@ final _perfil = Perfil(
   creadoEn: DateTime(2026, 11, 1),
 );
 
-const _icesi = Universidad(id: 'icesi', nombre: 'Universidad Icesi', dominioCorreo: 'u.icesi.edu.co');
+const _icesi = Universidad(
+  id: 'icesi',
+  nombre: 'Universidad Icesi',
+  dominioCorreo: 'u.icesi.edu.co',
+);
 
 void main() {
   late _RepositorioFalso repositorio;
@@ -58,28 +62,56 @@ void main() {
     blocTest<AuthBloc, AuthState>(
       'bien: cargando y luego éxito con el perfil',
       setUp: () {
-        when(() => repositorio.iniciarSesion(correo: any(named: 'correo'), contrasena: any(named: 'contrasena')))
-            .thenAnswer((_) async {});
+        when(
+          () => repositorio.iniciarSesion(
+            correo: any(named: 'correo'),
+            contrasena: any(named: 'contrasena'),
+          ),
+        ).thenAnswer((_) async {});
         when(() => repositorio.perfilActual()).thenAnswer((_) async => _perfil);
       },
       build: () => AuthBloc(repositorio),
-      act: (bloc) => bloc.add(const InicioSesionPedido(correo: 'ana@u.icesi.edu.co', contrasena: 'clave1234')),
+      act: (bloc) => bloc.add(
+        const InicioSesionPedido(
+          correo: 'ana@u.icesi.edu.co',
+          contrasena: 'clave1234',
+        ),
+      ),
       expect: () => [
-        const AuthState(accion: AccionAuth.inicioSesion, estado: EstadoAccion.cargando),
-        AuthState(accion: AccionAuth.inicioSesion, estado: EstadoAccion.exito, perfil: _perfil),
+        const AuthState(
+          accion: AccionAuth.inicioSesion,
+          estado: EstadoAccion.cargando,
+        ),
+        AuthState(
+          accion: AccionAuth.inicioSesion,
+          estado: EstadoAccion.exito,
+          perfil: _perfil,
+        ),
       ],
     );
 
     blocTest<AuthBloc, AuthState>(
       'mal: muestra el mensaje en español',
       setUp: () {
-        when(() => repositorio.iniciarSesion(correo: any(named: 'correo'), contrasena: any(named: 'contrasena')))
-            .thenThrow(const AppException('Correo o contraseña incorrectos.'));
+        when(
+          () => repositorio.iniciarSesion(
+            correo: any(named: 'correo'),
+            contrasena: any(named: 'contrasena'),
+          ),
+        ).thenThrow(const AppException('Correo o contraseña incorrectos.'));
       },
       build: () => AuthBloc(repositorio),
-      act: (bloc) => bloc.add(const InicioSesionPedido(correo: 'ana@u.icesi.edu.co', contrasena: 'mala1234')),
+      act: (bloc) => bloc.add(
+        const InicioSesionPedido(
+          correo: 'ana@u.icesi.edu.co',
+          contrasena: 'mala1234',
+        ),
+      ),
       expect: () => [
-        const AuthState(accion: AccionAuth.inicioSesion, estado: EstadoAccion.cargando),
+        const AuthState(
+          accion: AccionAuth.inicioSesion,
+          estado: EstadoAccion.cargando,
+        ),
         const AuthState(
           accion: AccionAuth.inicioSesion,
           estado: EstadoAccion.error,
@@ -91,15 +123,32 @@ void main() {
     blocTest<AuthBloc, AuthState>(
       'si el perfil no carga, igual entra (no muestra un error falso)',
       setUp: () {
-        when(() => repositorio.iniciarSesion(correo: any(named: 'correo'), contrasena: any(named: 'contrasena')))
-            .thenAnswer((_) async {});
-        when(() => repositorio.perfilActual()).thenThrow(const AppException('Sin conexión.'));
+        when(
+          () => repositorio.iniciarSesion(
+            correo: any(named: 'correo'),
+            contrasena: any(named: 'contrasena'),
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => repositorio.perfilActual(),
+        ).thenThrow(const AppException('Sin conexión.'));
       },
       build: () => AuthBloc(repositorio),
-      act: (bloc) => bloc.add(const InicioSesionPedido(correo: 'ana@u.icesi.edu.co', contrasena: 'clave1234')),
+      act: (bloc) => bloc.add(
+        const InicioSesionPedido(
+          correo: 'ana@u.icesi.edu.co',
+          contrasena: 'clave1234',
+        ),
+      ),
       expect: () => [
-        const AuthState(accion: AccionAuth.inicioSesion, estado: EstadoAccion.cargando),
-        const AuthState(accion: AccionAuth.inicioSesion, estado: EstadoAccion.exito),
+        const AuthState(
+          accion: AccionAuth.inicioSesion,
+          estado: EstadoAccion.cargando,
+        ),
+        const AuthState(
+          accion: AccionAuth.inicioSesion,
+          estado: EstadoAccion.exito,
+        ),
       ],
     );
   });
@@ -107,22 +156,29 @@ void main() {
   blocTest<AuthBloc, AuthState>(
     'registro que pide confirmar el correo',
     setUp: () {
-      when(() => repositorio.registrar(
-            nombre: any(named: 'nombre'),
-            correo: any(named: 'correo'),
-            contrasena: any(named: 'contrasena'),
-            universidadId: any(named: 'universidadId'),
-          )).thenAnswer((_) async => ResultadoRegistro.confirmarCorreo);
+      when(
+        () => repositorio.registrar(
+          nombre: any(named: 'nombre'),
+          correo: any(named: 'correo'),
+          contrasena: any(named: 'contrasena'),
+          universidadId: any(named: 'universidadId'),
+        ),
+      ).thenAnswer((_) async => ResultadoRegistro.confirmarCorreo);
     },
     build: () => AuthBloc(repositorio),
-    act: (bloc) => bloc.add(const RegistroPedido(
-      nombre: 'Ana Gómez',
-      correo: 'ana@u.icesi.edu.co',
-      contrasena: 'clave1234',
-      universidad: _icesi,
-    )),
+    act: (bloc) => bloc.add(
+      const RegistroPedido(
+        nombre: 'Ana Gómez',
+        correo: 'ana@u.icesi.edu.co',
+        contrasena: 'clave1234',
+        universidad: _icesi,
+      ),
+    ),
     expect: () => [
-      const AuthState(accion: AccionAuth.registro, estado: EstadoAccion.cargando),
+      const AuthState(
+        accion: AccionAuth.registro,
+        estado: EstadoAccion.cargando,
+      ),
       const AuthState(
         accion: AccionAuth.registro,
         estado: EstadoAccion.exito,
@@ -133,13 +189,23 @@ void main() {
 
   blocTest<AuthBloc, AuthState>(
     'cerrar sesión deja el estado limpio',
-    setUp: () => when(() => repositorio.cerrarSesion()).thenAnswer((_) async {}),
+    setUp: () =>
+        when(() => repositorio.cerrarSesion()).thenAnswer((_) async {}),
     build: () => AuthBloc(repositorio),
     seed: () => AuthState(sesion: Sesion.activa, perfil: _perfil),
     act: (bloc) => bloc.add(const CerrarSesionPedido()),
     expect: () => [
-      AuthState(sesion: Sesion.activa, perfil: _perfil, accion: AccionAuth.cierreSesion, estado: EstadoAccion.cargando),
-      const AuthState(sesion: Sesion.cerrada, accion: AccionAuth.cierreSesion, estado: EstadoAccion.exito),
+      AuthState(
+        sesion: Sesion.activa,
+        perfil: _perfil,
+        accion: AccionAuth.cierreSesion,
+        estado: EstadoAccion.cargando,
+      ),
+      const AuthState(
+        sesion: Sesion.cerrada,
+        accion: AccionAuth.cierreSesion,
+        estado: EstadoAccion.exito,
+      ),
     ],
   );
 

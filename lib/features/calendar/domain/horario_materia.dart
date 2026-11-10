@@ -1,8 +1,10 @@
+import 'package:equatable/equatable.dart';
+
 import 'package:studyflow/core/data/data.dart';
 
 /// Un horario de clase junto con su materia (nombre y color), porque la
 /// tabla horarios_clase solo trae el id de la materia.
-class HorarioMateria {
+class HorarioMateria extends Equatable {
   const HorarioMateria({required this.horario, required this.materia});
 
   final HorarioClase horario;
@@ -20,4 +22,7 @@ class HorarioMateria {
 
   DateTime inicioEn(DateTime dia) => horario.horaInicio.enDia(dia);
   DateTime finEn(DateTime dia) => horario.horaFin.enDia(dia);
+
+  @override
+  List<Object?> get props => [horario, materia.id];
 }

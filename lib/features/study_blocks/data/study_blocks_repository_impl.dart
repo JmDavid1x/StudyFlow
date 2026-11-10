@@ -92,4 +92,35 @@ class StudyBlocksRepositoryImpl implements StudyBlocksRepository {
       throw AppException(mensajeDeError(e));
     }
   }
+
+  @override
+  Future<Actividad> actividad(String id) async {
+    try {
+      final fila = await _db
+          .from('actividades')
+          .select(Actividad.select)
+          .eq('id', id)
+          .single();
+      return Actividad.fromMap(fila);
+    } catch (e) {
+      throw AppException(mensajeDeError(e));
+    }
+  }
+
+  @override
+  Future<List<Actividad>> actividadesAbiertas() async {
+    try {
+      final filas = await _db
+          .from('actividades')
+          .select(Actividad.selectPeriodoActivo)
+          .eq('componentes_nota.materias.periodos.activo', true)
+          .order('fecha_limite');
+      return filas
+          .map(Actividad.fromMap)
+          .where((a) => !a.estado.estaCerrada)
+          .toList();
+    } catch (e) {
+      throw AppException(mensajeDeError(e));
+    }
+  }
 }

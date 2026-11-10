@@ -31,7 +31,10 @@ class WeekStrip extends StatelessWidget {
           Expanded(
             child: _DayChip(
               day: weekStart.add(Duration(days: i)),
-              selected: DateUtils.isSameDay(weekStart.add(Duration(days: i)), selected),
+              selected: DateUtils.isSameDay(
+                weekStart.add(Duration(days: i)),
+                selected,
+              ),
               dots: dotsFor(weekStart.add(Duration(days: i))),
               onTap: () => onSelect(weekStart.add(Duration(days: i))),
             ),
@@ -76,14 +79,18 @@ class _DayChip extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: SfSpacing.xs),
             decoration: BoxDecoration(
               borderRadius: radius,
-              border: Border.all(color: selected ? SfColors.primary : SfColors.border),
+              border: Border.all(
+                color: selected ? SfColors.primary : SfColors.border,
+              ),
             ),
             child: Column(
               children: [
                 Text(
                   CalendarLabels.weekdaysShort[day.weekday - 1],
                   style: SfTypography.caption.copyWith(
-                    color: selected ? SfColors.textPrimary : SfColors.textSecondary,
+                    color: selected
+                        ? SfColors.textPrimary
+                        : SfColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: SfSpacing.xxs),
