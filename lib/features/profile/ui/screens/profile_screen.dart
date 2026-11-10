@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/assistant/ui/widgets/assistant_demo.dart';
 import 'package:studyflow/features/profile/ui/widgets/profile_demo.dart';
 import 'package:studyflow/features/profile/ui/widgets/profile_link_tile.dart';
+import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 
 /// Pestaña Perfil (Figma 25). La barra inferior la pone MainShell.
 class ProfileScreen extends StatelessWidget {
@@ -48,11 +50,9 @@ class ProfileScreen extends StatelessWidget {
                       label: 'Cerrar sesión',
                       icon: Icons.logout_rounded,
                       variant: SfButtonVariant.danger,
-                      onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.login,
-                        (_) => false,
-                      ),
+                      // Cierra la sesión en Supabase; el AuthBloc (app.dart)
+                      // lleva al login y borra el historial.
+                      onPressed: () => context.read<AuthBloc>().add(const CerrarSesionPedido()),
                     ),
                   ],
                 ),
