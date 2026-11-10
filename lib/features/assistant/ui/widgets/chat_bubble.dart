@@ -6,7 +6,12 @@ import 'package:studyflow/core/design_system/design_system.dart';
 /// asistente a la izquierda en superficie. [child] va debajo del texto (la
 /// tarjeta del orden sugerido o el aviso sin conexión).
 class ChatBubble extends StatelessWidget {
-  const ChatBubble({super.key, required this.text, required this.isUser, this.child});
+  const ChatBubble({
+    super.key,
+    required this.text,
+    required this.isUser,
+    this.child,
+  });
 
   final String text;
   final bool isUser;
@@ -17,7 +22,10 @@ class ChatBubble extends StatelessWidget {
     const corner = Radius.circular(SfRadius.lg);
     const tail = Radius.circular(SfRadius.sm);
     final bubble = Container(
-      padding: const EdgeInsets.symmetric(horizontal: SfSpacing.md, vertical: SfSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SfSpacing.md,
+        vertical: SfSpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: isUser ? SfColors.primary : SfColors.surface,
         border: isUser ? null : Border.all(color: SfColors.border),
@@ -34,7 +42,9 @@ class ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: SfSpacing.sm),
       child: Column(
-        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           FractionallySizedBox(
             widthFactor: 0.82,
@@ -44,10 +54,7 @@ class ChatBubble extends StatelessWidget {
               child: bubble,
             ),
           ),
-          if (child != null) ...[
-            const SizedBox(height: SfSpacing.xs),
-            child!,
-          ],
+          if (child != null) ...[const SizedBox(height: SfSpacing.xs), child!],
         ],
       ),
     );

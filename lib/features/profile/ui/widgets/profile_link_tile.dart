@@ -21,7 +21,10 @@ class ProfileLinkTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SfCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: SfSpacing.md, vertical: SfSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SfSpacing.md,
+        vertical: SfSpacing.sm,
+      ),
       child: Row(
         children: [
           Container(
@@ -39,7 +42,12 @@ class ProfileLinkTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: SfTypography.bodyStrong),
-                Text(subtitle, style: SfTypography.caption.copyWith(color: SfColors.textSecondary)),
+                Text(
+                  subtitle,
+                  style: SfTypography.caption.copyWith(
+                    color: SfColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),

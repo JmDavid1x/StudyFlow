@@ -31,14 +31,24 @@ class NotificationSettingCard extends StatelessWidget {
           MergeSemantics(
             child: Row(
               children: [
-                Icon(icon, color: enabled ? SfColors.primaryLight : SfColors.textSecondary),
+                Icon(
+                  icon,
+                  color: enabled
+                      ? SfColors.primaryLight
+                      : SfColors.textSecondary,
+                ),
                 const SizedBox(width: SfSpacing.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(title, style: SfTypography.bodyStrong),
-                      Text(subtitle, style: SfTypography.caption.copyWith(color: SfColors.textSecondary)),
+                      Text(
+                        subtitle,
+                        style: SfTypography.caption.copyWith(
+                          color: SfColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
