@@ -5,8 +5,10 @@ import 'package:studyflow/core/design_system/design_system.dart';
 /// Aviso de Inicio cuando quedó un bloque de estudio sin completar
 /// (Figma 12). Al tocarlo se decide qué hacer con el bloque.
 class PendingBlockBanner extends StatelessWidget {
-  const PendingBlockBanner({super.key, required this.onTap});
+  const PendingBlockBanner({super.key, required this.activityTitle, required this.onTap});
 
+  /// Lo que prepara el bloque: "Estudiar para Parcial 2".
+  final String activityTitle;
   final VoidCallback onTap;
 
   @override
@@ -33,7 +35,7 @@ class PendingBlockBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('1 bloque de ayer sin completar', style: SfTypography.bodyStrong),
-                    Text('Estudiar para Parcial 2 · toca para decidir', style: SfTypography.caption),
+                    Text('$activityTitle · toca para decidir', style: SfTypography.caption),
                   ],
                 ),
               ),

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
-import 'package:studyflow/core/demo/demo_data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 
 /// Fila de una tarea vencida (Figma 17, sección Vencidas). En rojo y sin
 /// círculo para completar: primero hay que decir si se entregó.
 class OverdueTaskTile extends StatelessWidget {
-  const OverdueTaskTile({super.key, required this.task, this.onTap});
+  const OverdueTaskTile({super.key, required this.title, required this.subtitle, this.onTap});
 
-  final DemoTask task;
+  final String title;
+
+  /// "Aplicaciones Móviles · venció ayer"
+  final String subtitle;
   final VoidCallback? onTap;
 
   @override
@@ -31,10 +33,7 @@ class OverdueTaskTile extends StatelessWidget {
               Container(
                 width: SfSpacing.xl,
                 height: SfSpacing.xl,
-                decoration: BoxDecoration(
-                  color: SfColors.danger.withValues(alpha: 0.16),
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: SfColors.danger.withValues(alpha: 0.16), shape: BoxShape.circle),
                 child: const Icon(Icons.warning_amber_rounded, size: SfSpacing.md, color: SfColors.danger),
               ),
               const SizedBox(width: SfSpacing.sm),
@@ -42,13 +41,15 @@ class OverdueTaskTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(task.title, style: SfTypography.bodyStrong),
-                    Text('${task.subject} · ${task.due}', style: SfTypography.caption),
+                    Text(title, style: SfTypography.bodyStrong),
+                    Text(subtitle, style: SfTypography.caption),
                   ],
                 ),
               ),
               const SizedBox(width: SfSpacing.xs),
-              const Flexible(child: SfBadge(label: '¿La entregaste?', tone: SfTone.danger)),
+              const Flexible(
+                child: SfBadge(label: '¿La entregaste?', tone: SfTone.danger),
+              ),
             ],
           ),
         ),
