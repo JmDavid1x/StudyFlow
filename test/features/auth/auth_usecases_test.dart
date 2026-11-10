@@ -12,16 +12,8 @@ import 'package:studyflow/features/auth/domain/usecases/universidad_por_correo.d
 
 class _RepositorioFalso extends Mock implements AuthRepository {}
 
-const _icesi = Universidad(
-  id: 'u1',
-  nombre: 'Universidad Icesi',
-  dominioCorreo: 'u.icesi.edu.co',
-);
-const _uao = Universidad(
-  id: 'u2',
-  nombre: 'Universidad Autónoma de Occidente',
-  dominioCorreo: 'uao.edu.co',
-);
+const _icesi = Universidad(id: 'u1', nombre: 'Universidad Icesi', dominioCorreo: 'u.icesi.edu.co');
+const _uao = Universidad(id: 'u2', nombre: 'Universidad Autónoma de Occidente', dominioCorreo: 'uao.edu.co');
 
 void main() {
   late _RepositorioFalso repositorio;
@@ -30,14 +22,12 @@ void main() {
 
   group('RegistrarUsuario', () {
     test('limpia los datos y llama al repositorio', () async {
-      when(
-        () => repositorio.registrar(
-          nombre: any(named: 'nombre'),
-          correo: any(named: 'correo'),
-          contrasena: any(named: 'contrasena'),
-          universidadId: any(named: 'universidadId'),
-        ),
-      ).thenAnswer((_) async => ResultadoRegistro.conSesion);
+      when(() => repositorio.registrar(
+            nombre: any(named: 'nombre'),
+            correo: any(named: 'correo'),
+            contrasena: any(named: 'contrasena'),
+            universidadId: any(named: 'universidadId'),
+          )).thenAnswer((_) async => ResultadoRegistro.conSesion);
 
       final resultado = await RegistrarUsuario(repositorio)(
         nombre: '  Santiago García ',
@@ -47,14 +37,12 @@ void main() {
       );
 
       expect(resultado, ResultadoRegistro.conSesion);
-      verify(
-        () => repositorio.registrar(
-          nombre: 'Santiago García',
-          correo: 'santiago@u.icesi.edu.co',
-          contrasena: 'clave1234',
-          universidadId: 'u1',
-        ),
-      ).called(1);
+      verify(() => repositorio.registrar(
+            nombre: 'Santiago García',
+            correo: 'santiago@u.icesi.edu.co',
+            contrasena: 'clave1234',
+            universidadId: 'u1',
+          )).called(1);
     });
 
     test('no llama a Supabase si la contraseña es débil', () async {
@@ -67,14 +55,12 @@ void main() {
         ),
         throwsA(isA<AppException>()),
       );
-      verifyNever(
-        () => repositorio.registrar(
-          nombre: any(named: 'nombre'),
-          correo: any(named: 'correo'),
-          contrasena: any(named: 'contrasena'),
-          universidadId: any(named: 'universidadId'),
-        ),
-      );
+      verifyNever(() => repositorio.registrar(
+            nombre: any(named: 'nombre'),
+            correo: any(named: 'correo'),
+            contrasena: any(named: 'contrasena'),
+            universidadId: any(named: 'universidadId'),
+          ));
     });
 
     test('pide la universidad', () async {
@@ -85,13 +71,7 @@ void main() {
           contrasena: 'clave1234',
           universidad: null,
         ),
-        throwsA(
-          isA<AppException>().having(
-            (e) => e.mensaje,
-            'mensaje',
-            'Elige tu universidad',
-          ),
-        ),
+        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', 'Elige tu universidad')),
       );
     });
 
@@ -103,39 +83,18 @@ void main() {
           contrasena: 'clave1234',
           universidad: _icesi,
         ),
-        throwsA(
-          isA<AppException>().having(
-            (e) => e.mensaje,
-            'mensaje',
-            contains('u.icesi.edu.co'),
-          ),
-        ),
+        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', contains('u.icesi.edu.co'))),
       );
     });
   });
 
   test('IniciarSesion valida antes de llamar', () async {
-    when(
-      () => repositorio.iniciarSesion(
-        correo: any(named: 'correo'),
-        contrasena: any(named: 'contrasena'),
-      ),
-    ).thenAnswer((_) async {});
+    when(() => repositorio.iniciarSesion(correo: any(named: 'correo'), contrasena: any(named: 'contrasena')))
+        .thenAnswer((_) async {});
 
-    await expectLater(
-      IniciarSesion(repositorio)(correo: 'sin-arroba', contrasena: 'x'),
-      throwsA(isA<AppException>()),
-    );
-    await IniciarSesion(repositorio)(
-      correo: 'Ana@uao.edu.co',
-      contrasena: 'clave1234',
-    );
-    verify(
-      () => repositorio.iniciarSesion(
-        correo: 'ana@uao.edu.co',
-        contrasena: 'clave1234',
-      ),
-    ).called(1);
+    await expectLater(IniciarSesion(repositorio)(correo: 'sin-arroba', contrasena: 'x'), throwsA(isA<AppException>()));
+    await IniciarSesion(repositorio)(correo: 'Ana@uao.edu.co', contrasena: 'clave1234');
+    verify(() => repositorio.iniciarSesion(correo: 'ana@uao.edu.co', contrasena: 'clave1234')).called(1);
   });
 
   test('RecuperarContrasena devuelve el correo limpio', () async {
@@ -146,24 +105,13 @@ void main() {
 
   test('CambiarContrasena exige que coincidan', () async {
     await expectLater(
-      CambiarContrasena(repositorio)(
-        nueva: 'clave1234',
-        confirmacion: 'clave12345',
-      ),
-      throwsA(
-        isA<AppException>().having(
-          (e) => e.mensaje,
-          'mensaje',
-          'Las contraseñas no coinciden',
-        ),
-      ),
+      CambiarContrasena(repositorio)(nueva: 'clave1234', confirmacion: 'clave12345'),
+      throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', 'Las contraseñas no coinciden')),
     );
   });
 
   test('ObtenerUniversidades las ordena por nombre', () async {
-    when(
-      () => repositorio.universidades(),
-    ).thenAnswer((_) async => [_icesi, _uao]);
+    when(() => repositorio.universidades()).thenAnswer((_) async => [_icesi, _uao]);
     final lista = await ObtenerUniversidades(repositorio)();
     expect(lista.first, _uao);
   });
@@ -171,9 +119,6 @@ void main() {
   test('universidadPorCorreo detecta el dominio', () {
     expect(universidadPorCorreo('juan@u.icesi.edu.co', [_icesi, _uao]), _icesi);
     expect(universidadPorCorreo('juan@gmail.com', [_icesi, _uao]), isNull);
-    expect(
-      universidadPorCorreo('profe@sistemas.u.icesi.edu.co', [_icesi, _uao]),
-      _icesi,
-    );
+    expect(universidadPorCorreo('profe@sistemas.u.icesi.edu.co', [_icesi, _uao]), _icesi);
   });
 }
