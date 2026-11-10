@@ -95,8 +95,8 @@ class _SubjectDetailView extends StatelessWidget {
     final materia = state.materia;
     final horario = horarioTexto(materia.horarios);
     final subtitulo = [
-      if (materia.profesor != null) materia.profesor!,
-      if (horario != null) horario,
+      ?materia.profesor,
+      ?horario,
     ].join(' · ');
 
     return RefreshIndicator(

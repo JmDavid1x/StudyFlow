@@ -13,8 +13,9 @@ class SubjectsCubit extends Cubit<SubjectsState> {
   /// Carga (o recarga) las materias. Con [mostrarCargando] en false no
   /// parpadea la pantalla al refrescar al volver de otra pantalla.
   Future<void> cargar({bool mostrarCargando = true}) async {
-    if (mostrarCargando || state is! SubjectsLoaded)
+    if (mostrarCargando || state is! SubjectsLoaded) {
       emit(const SubjectsLoading());
+    }
     try {
       final resumen = await _obtenerResumen();
       emit(resumen.vacio ? const SubjectsEmpty() : SubjectsLoaded(resumen));

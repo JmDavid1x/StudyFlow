@@ -21,8 +21,9 @@ class SubjectDetailCubit extends Cubit<SubjectDetailState> {
   Materia? _materia;
 
   Future<void> cargar({bool mostrarCargando = true}) async {
-    if (mostrarCargando || state is! SubjectDetailLoaded)
+    if (mostrarCargando || state is! SubjectDetailLoaded) {
       emit(const SubjectDetailLoading());
+    }
     try {
       var materia = _materia;
       if (materia == null) {

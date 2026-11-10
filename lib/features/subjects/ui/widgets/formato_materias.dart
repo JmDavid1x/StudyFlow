@@ -46,8 +46,9 @@ String? textoParaLaMeta({
   if (meta == null) return null;
   final falta = resumen.notaQueFalta;
   if (falta == null) return 'Ya evaluaste toda la materia';
-  if (resumen.metaInalcanzable)
+  if (resumen.metaInalcanzable) {
     return 'Tu meta ya no es alcanzable (necesitarías ${notaTexto(falta)})';
+  }
   if (falta == 0) return 'Ya aseguraste tu meta';
   final pendiente = (100 - resumen.porcentajeEvaluado).round();
   return 'Necesitas ${notaTexto(falta)} en el $pendiente % que falta';

@@ -42,8 +42,9 @@ class SetupSubjectsCubit extends Cubit<SetupSubjectsState> {
   final SubjectsRepository _repositorio;
 
   Future<void> cargar({bool mostrarCargando = true}) async {
-    if (mostrarCargando || state is! SetupSubjectsLoaded)
+    if (mostrarCargando || state is! SetupSubjectsLoaded) {
       emit(const SetupSubjectsLoading());
+    }
     try {
       emit(SetupSubjectsLoaded(await _repositorio.materiasDelPeriodo()));
     } on AppException catch (e) {
