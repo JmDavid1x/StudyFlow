@@ -1,45 +1,44 @@
 import 'package:flutter/material.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/features/study_blocks/ui/widgets/demo_agenda.dart';
 
 /// S5 Bloque completado. Confirma el bloque y aclara que la tarea sigue
 /// abierta hasta que se marque como entregada.
 ///
-/// [closeScreen] es true cuando se abre desde Bloque de estudio: el botón
-/// "Volver al calendario" cierra la hoja y esa pantalla. Desde la pestaña
-/// Calendario va en false: el botón dice "Listo" y solo cierra la hoja, para
-/// no sacar al usuario de la app principal.
+/// Desde Bloque de estudio llega [actividad]: el botón principal es "Ver la
+/// tarea" y "Volver al calendario" cierra la hoja y esa pantalla. Desde la
+/// pestaña Calendario no llega: el botón es "Listo" y solo cierra la hoja,
+/// para no sacar al usuario de la app principal.
 Future<void> showBlockCompletedSheet(
   BuildContext context,
-  AgendaItem block, {
-  bool closeScreen = true,
+  BloqueEstudio bloque, {
+  Actividad? actividad,
 }) {
-  final task = block.task!;
-  final count = DemoAgenda.blocksFor(task);
-  final message = count > 1
-      ? 'Ya hiciste los $count bloques que tenías para "${task.title}".'
-      : 'Ya hiciste el bloque que tenías para "${task.title}".';
-
+  final titulo = actividad?.titulo ?? bloque.actividadTitulo;
   return showSfBottomSheet<void>(
     context,
     builder: (sheetContext) => SfResultSheet(
       title: 'Bloque completado',
-      message: message,
-      primaryLabel: 'Ver la tarea',
+      message: titulo == null
+          ? 'Ya hiciste este bloque de estudio.'
+          : 'Ya hiciste este bloque para "$titulo".',
+      primaryLabel: actividad == null ? 'Listo' : 'Ver la tarea',
       onPrimary: () {
         Navigator.pop(sheetContext);
-        Navigator.pushNamed(
-          context,
-          task.isExam ? AppRoutes.examDetail : AppRoutes.taskDetail,
-          arguments: task,
-        );
+        if (actividad != null) {
+          Navigator.pushReplacementNamed(
+            context,
+            actividad.esExamen ? AppRoutes.examDetail : AppRoutes.taskDetail,
+            arguments: actividad,
+          );
+        }
       },
-      secondaryLabel: closeScreen ? 'Volver al calendario' : 'Listo',
+      secondaryLabel: actividad == null ? null : 'Volver al calendario',
       onSecondary: () {
         Navigator.pop(sheetContext);
-        if (closeScreen) Navigator.pop(context);
+        Navigator.pop(context);
       },
       child: SfCard(
         child: Column(
@@ -47,7 +46,12 @@ Future<void> showBlockCompletedSheet(
           children: [
             Row(
               children: [
-                Expanded(child: Text('Estado de la tarea', style: SfTypography.bodyStrong)),
+                Expanded(
+                  child: Text(
+                    'Estado de la tarea',
+                    style: SfTypography.bodyStrong,
+                  ),
+                ),
                 const SfBadge(label: 'En progreso', tone: SfTone.primary),
               ],
             ),

@@ -1,122 +1,154 @@
 import 'package:flutter/material.dart';
 
-import 'package:studyflow/core/demo/demo_data.dart';
+import 'package:studyflow/core/data/data.dart';
 
-/// Tipo de actividad (Figma 14: Tarea, Examen, Proyecto).
-enum TaskKind {
-  task('Tarea'),
-  exam('Examen'),
-  project('Proyecto');
-
-  const TaskKind(this.label);
-  final String label;
+/// Textos de los enums de la base para el formulario (Figma 14).
+extension TipoActividadTexto on TipoActividad {
+  String get texto => switch (this) {
+    TipoActividad.tarea => 'Tarea',
+    TipoActividad.examen => 'Examen',
+    TipoActividad.proyecto => 'Proyecto',
+  };
 }
 
-/// Prioridad de la actividad.
-enum TaskPriority {
-  low('Baja'),
-  medium('Media'),
-  high('Alta');
-
-  const TaskPriority(this.label);
-  final String label;
+extension PrioridadTexto on Prioridad {
+  String get texto => switch (this) {
+    Prioridad.baja => 'Baja',
+    Prioridad.media => 'Media',
+    Prioridad.alta => 'Alta',
+  };
 }
 
-/// Dónde se entrega la actividad (Figma 14: "¿Dónde se entrega?").
-enum DeliveryChannel {
-  intu('INTU', 'Plataforma de la U', Icons.school_outlined),
-  email('Correo', 'Por e-mail al profe', Icons.mail_outline),
-  inClass('En clase', 'En persona', Icons.groups_outlined),
-  whatsapp('WhatsApp', 'Al grupo o al profe', Icons.chat_bubble_outline);
+/// Opciones de "¿Dónde se entrega?" con su texto e ícono.
+extension CanalEntregaTexto on CanalEntrega {
+  String get texto => switch (this) {
+    CanalEntrega.intu => 'INTU',
+    CanalEntrega.correo => 'Correo',
+    CanalEntrega.enClase => 'En clase',
+    CanalEntrega.whatsapp => 'WhatsApp',
+  };
 
-  const DeliveryChannel(this.label, this.subtitle, this.icon);
-  final String label;
-  final String subtitle;
-  final IconData icon;
+  String get subtitulo => switch (this) {
+    CanalEntrega.intu => 'Plataforma de la U',
+    CanalEntrega.correo => 'Por e-mail al profe',
+    CanalEntrega.enClase => 'En persona',
+    CanalEntrega.whatsapp => 'Al grupo o al profe',
+  };
+
+  IconData get icono => switch (this) {
+    CanalEntrega.intu => Icons.school_outlined,
+    CanalEntrega.correo => Icons.mail_outline,
+    CanalEntrega.enClase => Icons.groups_outlined,
+    CanalEntrega.whatsapp => Icons.chat_bubble_outline,
+  };
 }
-
-/// Parte de la nota de la materia a la que suma la actividad
-/// (Figma 14: "Parte de la nota").
-class GradePart {
-  const GradePart(this.label, this.weight);
-
-  final String label;
-
-  /// Porcentaje que vale esta parte en la nota final.
-  final int weight;
-}
-
-/// Partes de la nota del prototipo. En el Sprint 2 salen de cada materia.
-const demoGradeParts = <GradePart>[
-  GradePart('Talleres', 30),
-  GradePart('Proyecto', 40),
-  GradePart('Parciales', 30),
-];
 
 /// Lo que el usuario llena en el formulario de tarea (Figma 14 y 19).
-/// Se usa para cargar el formulario al editar y para mostrar el resumen
-/// en Tarea guardada (Figma 15).
+/// Con [toActividad] se convierte en la [Actividad] que se guarda en Supabase.
 class TaskFormData {
   const TaskFormData({
     this.title = '',
-    this.subject,
-    this.kind = TaskKind.task,
+    this.materia,
+    this.componente,
+    this.tipo = TipoActividad.tarea,
     this.date,
     this.time,
-    this.gradePart,
-    this.gradeValue = 15,
-    this.priority = TaskPriority.medium,
-    this.channel,
+    this.porcentaje = 0,
+    this.prioridad = Prioridad.media,
+    this.canal,
     this.place = '',
     this.reminder = true,
     this.notes = '',
   });
 
+  /// Carga una actividad guardada en el formulario (Editar tarea). La materia
+  /// y el componente se buscan en [materias] por el componente de la actividad.
+  factory TaskFormData.fromActividad(
+    Actividad actividad,
+    List<Materia> materias,
+  ) {
+    Materia? materia;
+    ComponenteNota? componente;
+    for (final m in materias) {
+      for (final c in m.componentes) {
+        if (c.id == actividad.componenteId) {
+          materia = m;
+          componente = c;
+        }
+      }
+    }
+    return TaskFormData(
+      title: actividad.titulo,
+      materia: materia,
+      componente: componente,
+      tipo: actividad.tipo,
+      date: DateTime(
+        actividad.fechaLimite.year,
+        actividad.fechaLimite.month,
+        actividad.fechaLimite.day,
+      ),
+      time: TimeOfDay.fromDateTime(actividad.fechaLimite),
+      porcentaje: actividad.porcentaje.round(),
+      prioridad: actividad.prioridad,
+      canal: actividad.canalEntrega,
+      place: actividad.lugar ?? '',
+      reminder: actividad.recordatorio,
+      notes: actividad.notas ?? '',
+    );
+  }
+
+  /// Si no se elige hora, la entrega queda a las 11:59 p. m. de ese día.
+  static const horaPorDefecto = TimeOfDay(hour: 23, minute: 59);
+
   final String title;
-  final DemoSubject? subject;
-  final TaskKind kind;
+  final Materia? materia;
+
+  /// Parte de la nota a la que suma (componente_id es obligatorio en la base).
+  final ComponenteNota? componente;
+  final TipoActividad tipo;
   final DateTime? date;
   final TimeOfDay? time;
-  final GradePart? gradePart;
 
-  /// Porcentaje de la nota que vale esta actividad.
-  final int gradeValue;
-  final TaskPriority priority;
+  /// Porcentaje de la nota que vale esta actividad (15 = 15 %).
+  final int porcentaje;
+  final Prioridad prioridad;
 
   /// Canal de entrega. Solo aplica si no es examen.
-  final DeliveryChannel? channel;
+  final CanalEntrega? canal;
 
   /// Lugar del examen. Solo aplica si es examen.
   final String place;
   final bool reminder;
   final String notes;
 
-  /// Carga en el formulario una tarea de [DemoData] (por ejemplo, la que
-  /// llega desde Detalle de tarea). DemoTask no trae fecha exacta, así que
-  /// la fecha queda por elegir.
-  factory TaskFormData.fromDemoTask(DemoTask task) {
-    return TaskFormData(
-      title: task.title,
-      subject: DemoData.subjects.where((s) => s.name == task.subject).firstOrNull,
-      kind: task.isExam ? TaskKind.exam : TaskKind.task,
-      priority: TaskPriority.values.firstWhere(
-        (p) => p.label.toLowerCase() == task.priority,
-        orElse: () => TaskPriority.medium,
+  /// La actividad para guardar. Con [original] (al editar) conserva su id,
+  /// estado y fechas; si es nueva, el estado lo pone GuardarActividad.
+  /// Solo se llama cuando ya hay componente y fecha (el formulario lo valida).
+  Actividad toActividad({Actividad? original}) {
+    final hora = time ?? horaPorDefecto;
+    final ahora = DateTime.now();
+    return Actividad(
+      id: original?.id ?? '',
+      componenteId: componente!.id,
+      titulo: title,
+      tipo: tipo,
+      fechaLimite: DateTime(
+        date!.year,
+        date!.month,
+        date!.day,
+        hora.hour,
+        hora.minute,
       ),
+      porcentaje: porcentaje.toDouble(),
+      prioridad: prioridad,
+      estado: original?.estado ?? EstadoActividad.porHacer,
+      recordatorio: reminder,
+      creadoEn: original?.creadoEn ?? ahora,
+      actualizadoEn: original?.actualizadoEn ?? ahora,
+      canalEntrega: tipo == TipoActividad.examen ? null : canal,
+      lugar: place,
+      notas: notes,
+      completadaEn: original?.completadaEn,
     );
   }
 }
-
-/// Tarea del prototipo (Figma 15 y 19), para cuando una pantalla se abre
-/// sin argumentos, por ejemplo desde el menú de desarrollo.
-final prototypeTask = TaskFormData(
-  title: 'Prototipo flujo principal',
-  subject: DemoData.subjects.first,
-  kind: TaskKind.project,
-  date: DateTime(2026, 9, 23),
-  time: const TimeOfDay(hour: 23, minute: 59),
-  gradePart: demoGradeParts[1],
-  priority: TaskPriority.high,
-  channel: DeliveryChannel.intu,
-  notes: 'Solo el flujo principal. Enlazar las pantallas en Figma.',
-);

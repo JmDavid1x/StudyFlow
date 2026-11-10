@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/task_form/ui/widgets/task_form_data.dart';
 
-/// Tarea guardada (Figma 15). Confirma que la tarea quedó guardada y muestra
-/// su resumen. Recibe un [TaskFormData] como argumento de la ruta.
+/// Tarea guardada (Figma 15). Confirma que la tarea quedó guardada en
+/// Supabase y muestra su resumen. Recibe la [Actividad] guardada como
+/// argumento de la ruta; sin argumento muestra solo la confirmación.
 class TaskSavedScreen extends StatelessWidget {
   const TaskSavedScreen({super.key});
 
@@ -14,7 +16,7 @@ class TaskSavedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
-    final task = args is TaskFormData ? args : prototypeTask;
+    final task = args is Actividad ? args : null;
 
     return Scaffold(
       body: SafeArea(
@@ -22,7 +24,12 @@ class TaskSavedScreen extends StatelessWidget {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(SfSpacing.screen, SfSpacing.xxl, SfSpacing.screen, SfSpacing.lg),
+                padding: const EdgeInsets.fromLTRB(
+                  SfSpacing.screen,
+                  SfSpacing.xxl,
+                  SfSpacing.screen,
+                  SfSpacing.lg,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -40,26 +47,43 @@ class TaskSavedScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.check_rounded, size: 44, color: SfColors.textPrimary),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          size: 44,
+                          color: SfColors.textPrimary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: SfSpacing.lg),
-                    Text('¡Tarea guardada!', textAlign: TextAlign.center, style: SfTypography.h1),
+                    Text(
+                      '¡Tarea guardada!',
+                      textAlign: TextAlign.center,
+                      style: SfTypography.h1,
+                    ),
                     const SizedBox(height: SfSpacing.xs),
                     Text(
                       'La agregamos a tu Inicio y a tu calendario. Ya no depende de que '
                       'recuerdes dónde la anotaste.',
                       textAlign: TextAlign.center,
-                      style: SfTypography.body.copyWith(color: SfColors.textSecondary),
+                      style: SfTypography.body.copyWith(
+                        color: SfColors.textSecondary,
+                      ),
                     ),
-                    const SizedBox(height: SfSpacing.lg),
-                    _TaskSummaryCard(task: task),
+                    if (task != null) ...[
+                      const SizedBox(height: SfSpacing.lg),
+                      _TaskSummaryCard(task: task),
+                    ],
                   ],
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(SfSpacing.screen, SfSpacing.xs, SfSpacing.screen, SfSpacing.md),
+              padding: const EdgeInsets.fromLTRB(
+                SfSpacing.screen,
+                SfSpacing.xs,
+                SfSpacing.screen,
+                SfSpacing.md,
+              ),
               child: Column(
                 children: [
                   SfButton(
@@ -76,7 +100,10 @@ class TaskSavedScreen extends StatelessWidget {
                     label: 'Crear otra tarea',
                     variant: SfButtonVariant.secondary,
                     // Reemplaza esta pantalla por un formulario vacío.
-                    onPressed: () => Navigator.pushReplacementNamed(context, AppRoutes.newTask),
+                    onPressed: () => Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.newTask,
+                    ),
                   ),
                 ],
               ),
@@ -92,22 +119,19 @@ class TaskSavedScreen extends StatelessWidget {
 class _TaskSummaryCard extends StatelessWidget {
   const _TaskSummaryCard({required this.task});
 
-  final TaskFormData task;
+  final Actividad task;
 
   @override
   Widget build(BuildContext context) {
-    final date = task.date;
-    final time = task.time;
-    final when = [
-      if (date != null) sfFormatDate(date),
-      if (time != null) sfFormatTime(time),
-    ].join(' · ');
+    final fecha = task.fechaLimite;
+    final when =
+        '${sfFormatDate(fecha)} · ${sfFormatTime(TimeOfDay.fromDateTime(fecha))}';
 
     String? where;
-    if (task.kind == TaskKind.exam) {
-      if (task.place.isNotEmpty) where = 'Es en ${task.place}';
-    } else if (task.channel != null) {
-      where = 'Se entrega por ${task.channel!.label}';
+    if (task.esExamen) {
+      if (task.lugar != null) where = 'Es en ${task.lugar}';
+    } else if (task.canalEntrega != null) {
+      where = 'Se entrega por ${task.canalEntrega!.texto}';
     }
 
     return SfCard(
@@ -116,25 +140,27 @@ class _TaskSummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(task.title, style: SfTypography.title)),
+              Expanded(child: Text(task.titulo, style: SfTypography.title)),
               const SizedBox(width: SfSpacing.xs),
-              SfBadge.priority(task.priority.label),
+              SfBadge.priority(task.prioridad.texto),
             ],
           ),
           const SizedBox(height: SfSpacing.xs),
-          if (task.subject != null)
+          if (task.materiaNombre != null)
             _SummaryRow(
               icon: Icons.circle,
-              iconColor: task.subject!.color,
+              iconColor: task.materiaColor ?? SfColors.primaryLight,
               iconSize: SfSpacing.xs,
-              text: '${task.subject!.name} · ${task.kind.label}',
+              text: '${task.materiaNombre} · ${task.tipo.texto}',
             ),
-          if (when.isNotEmpty) _SummaryRow(icon: Icons.event_outlined, text: when),
-          if (where != null) _SummaryRow(icon: Icons.send_outlined, text: where),
-          if (task.reminder && date != null)
+          _SummaryRow(icon: Icons.event_outlined, text: when),
+          if (where != null)
+            _SummaryRow(icon: Icons.send_outlined, text: where),
+          if (task.recordatorio)
             _SummaryRow(
               icon: Icons.alarm,
-              text: 'Te recordamos el ${sfFormatDate(date.subtract(const Duration(days: 1)))}',
+              text:
+                  'Te recordamos el ${sfFormatDate(fecha.subtract(const Duration(days: 1)))}',
             ),
         ],
       ),
@@ -167,7 +193,10 @@ class _SummaryRow extends StatelessWidget {
           ),
           const SizedBox(width: SfSpacing.xs),
           Expanded(
-            child: Text(text, style: SfTypography.body.copyWith(color: SfColors.textSecondary)),
+            child: Text(
+              text,
+              style: SfTypography.body.copyWith(color: SfColors.textSecondary),
+            ),
           ),
         ],
       ),

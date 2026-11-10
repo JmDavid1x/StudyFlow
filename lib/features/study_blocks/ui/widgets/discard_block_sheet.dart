@@ -1,26 +1,35 @@
 import 'package:flutter/material.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/features/study_blocks/ui/widgets/demo_agenda.dart';
+import 'package:studyflow/features/calendar/ui/widgets/formato.dart';
 
-/// Hoja para confirmar que se descarta un bloque. Si se confirma, vuelve a
-/// la pantalla anterior y avisa con "Bloque descartado".
-Future<void> showDiscardBlockSheet(BuildContext context, AgendaItem block) {
+/// Hoja para confirmar que se descarta un bloque. Si se confirma, cierra la
+/// hoja y llama a [alConfirmar] (la pantalla lo descarta en Supabase).
+Future<void> showDiscardBlockSheet(
+  BuildContext context,
+  BloqueEstudio bloque, {
+  required VoidCallback alConfirmar,
+}) {
   return showSfBottomSheet<void>(
     context,
     builder: (sheetContext) => Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('¿Descartar este bloque?', textAlign: TextAlign.center, style: SfTypography.h2),
+        Text(
+          '¿Descartar este bloque?',
+          textAlign: TextAlign.center,
+          style: SfTypography.h2,
+        ),
         const SizedBox(height: SfSpacing.xs),
         Text(
-          block.title,
+          bloque.actividadTitulo ?? 'Bloque de estudio',
           textAlign: TextAlign.center,
           style: SfTypography.bodyStrong,
         ),
         Text(
-          '${sfFormatDate(block.day)} · ${formatTimeRange(block.start, block.end)}',
+          '${sfFormatDate(bloque.inicio)} · ${rangoHoras(bloque.inicio, bloque.fin)}',
           textAlign: TextAlign.center,
           style: SfTypography.caption,
         ),
@@ -36,7 +45,7 @@ Future<void> showDiscardBlockSheet(BuildContext context, AgendaItem block) {
           variant: SfButtonVariant.danger,
           onPressed: () {
             Navigator.pop(sheetContext);
-            discardBlockAndGoBack(context);
+            alConfirmar();
           },
         ),
         const SizedBox(height: SfSpacing.xxs),

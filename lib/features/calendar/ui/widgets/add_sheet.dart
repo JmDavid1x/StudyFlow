@@ -4,11 +4,13 @@ import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 
 /// S7 Agregar: hoja inferior para elegir entre una tarea o un bloque de
-/// estudio. Cierra la hoja y abre la pantalla elegida.
-Future<void> showAddSheet(BuildContext context) {
-  void open(BuildContext sheetContext, String route) {
+/// estudio. Cierra la hoja y abre la pantalla elegida; cuando el usuario
+/// vuelve de esa pantalla llama a [alVolver] (el calendario se recarga).
+Future<void> showAddSheet(BuildContext context, {VoidCallback? alVolver}) {
+  Future<void> open(BuildContext sheetContext, String route) async {
     Navigator.pop(sheetContext);
-    Navigator.pushNamed(context, route);
+    await Navigator.pushNamed(context, route);
+    alVolver?.call();
   }
 
   return showSfBottomSheet<void>(
@@ -17,7 +19,11 @@ Future<void> showAddSheet(BuildContext context) {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('¿Qué quieres agregar?', textAlign: TextAlign.center, style: SfTypography.h2),
+        Text(
+          '¿Qué quieres agregar?',
+          textAlign: TextAlign.center,
+          style: SfTypography.h2,
+        ),
         const SizedBox(height: SfSpacing.md),
         _AddOption(
           icon: Icons.check_box_outlined,
@@ -67,7 +73,10 @@ class _AddOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return SfCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: SfSpacing.md, vertical: SfSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SfSpacing.md,
+        vertical: SfSpacing.sm,
+      ),
       child: Row(
         children: [
           Container(
@@ -77,7 +86,11 @@ class _AddOption extends StatelessWidget {
               color: highlighted ? SfColors.primary : SfColors.primarySoft,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 20, color: highlighted ? SfColors.textPrimary : SfColors.primaryLight),
+            child: Icon(
+              icon,
+              size: 20,
+              color: highlighted ? SfColors.textPrimary : SfColors.primaryLight,
+            ),
           ),
           const SizedBox(width: SfSpacing.sm),
           Expanded(

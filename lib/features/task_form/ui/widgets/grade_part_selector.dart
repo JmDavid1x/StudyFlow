@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/features/task_form/ui/widgets/task_form_data.dart';
 
-/// Selector de la parte de la nota (Figma 14): tres tarjetas angostas con el
-/// porcentaje arriba y el nombre abajo. SfOptionCards pone el texto al lado
-/// del círculo y en tres columnas no cabe, por eso esta versión compacta.
+/// Selector de la parte de la nota (Figma 14): tarjetas angostas con el
+/// porcentaje arriba y el nombre abajo, tres por fila. Las partes son los
+/// componentes de nota de la materia elegida (Talleres 30 %, Proyecto 40 %...).
 class GradePartSelector extends StatelessWidget {
   const GradePartSelector({
     super.key,
@@ -14,33 +14,47 @@ class GradePartSelector extends StatelessWidget {
     required this.onChanged,
   });
 
-  final List<GradePart> parts;
-  final GradePart? selected;
-  final ValueChanged<GradePart> onChanged;
+  static const _porFila = 3;
+
+  final List<ComponenteNota> parts;
+  final ComponenteNota? selected;
+  final ValueChanged<ComponenteNota> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (var i = 0; i < parts.length; i++) ...[
-          if (i > 0) const SizedBox(width: SfSpacing.xs),
-          Expanded(
-            child: _GradePartCard(
-              part: parts[i],
-              selected: parts[i] == selected,
-              onTap: () => onChanged(parts[i]),
-            ),
-          ),
-        ],
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = SfSpacing.xs;
+        final width = (constraints.maxWidth - gap * (_porFila - 1)) / _porFila;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final part in parts)
+              SizedBox(
+                width: width,
+                child: _GradePartCard(
+                  part: part,
+                  selected: part.id == selected?.id,
+                  onTap: () => onChanged(part),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
 
+/// Una tarjeta: porcentaje arriba con su círculo de selección, nombre abajo.
 class _GradePartCard extends StatelessWidget {
-  const _GradePartCard({required this.part, required this.selected, required this.onTap});
+  const _GradePartCard({
+    required this.part,
+    required this.selected,
+    required this.onTap,
+  });
 
-  final GradePart part;
+  final ComponenteNota part;
   final bool selected;
   final VoidCallback onTap;
 
@@ -72,8 +86,10 @@ class _GradePartCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '${part.weight} %',
-                        style: SfTypography.number.copyWith(color: SfColors.primaryLight),
+                        '${part.porcentaje.round()} %',
+                        style: SfTypography.number.copyWith(
+                          color: SfColors.primaryLight,
+                        ),
                       ),
                     ),
                     SfRadioDot(selected: selected),
@@ -81,7 +97,7 @@ class _GradePartCard extends StatelessWidget {
                 ),
                 const SizedBox(height: SfSpacing.xxs),
                 Text(
-                  part.label,
+                  part.nombre,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: SfTypography.caption,
