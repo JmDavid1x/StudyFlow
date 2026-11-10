@@ -35,6 +35,13 @@ class MensajeAsistente extends Equatable {
   /// Cuenta como consulta del plan gratis: respuesta de la IA, no de respaldo.
   bool get cuentaComoConsulta => rol == RolMensaje.asistente && !usadoRespaldo;
 
+  Map<String, dynamic> toInsert() => {
+        'perfil_id': perfilId,
+        'rol': rol.db,
+        'contenido': contenido,
+        'usado_respaldo': usadoRespaldo,
+      };
+
   @override
   List<Object?> get props => [id, perfilId, rol, contenido, usadoRespaldo, creadoEn];
 }
@@ -80,6 +87,16 @@ class PlanEstudio extends Equatable {
   final bool activo;
   final DateTime creadoEn;
   final List<PlanActividad> actividades;
+
+  /// Para crear el plan (sus actividades se insertan aparte con PlanActividad.toInsert).
+  Map<String, dynamic> toInsert() => {
+        'perfil_id': perfilId,
+        'mensaje_id': mensajeId,
+        'tipo': tipo.db,
+        'resumen': resumen,
+        'usado_respaldo': usadoRespaldo,
+        'activo': activo,
+      };
 
   @override
   List<Object?> get props => [id, perfilId, mensajeId, tipo, resumen, usadoRespaldo, activo, creadoEn, actividades];

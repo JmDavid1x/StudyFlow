@@ -25,6 +25,10 @@ class Calificacion extends Equatable {
   final double nota;
   final DateTime registradaEn;
 
+  /// Para guardar la nota. Hay una sola por actividad, así que se usa con
+  /// upsert: `from('calificaciones').upsert(c.toInsert(), onConflict: 'actividad_id')`.
+  Map<String, dynamic> toInsert() => {'actividad_id': actividadId, 'nota': nota};
+
   @override
   List<Object?> get props => [id, actividadId, nota, registradaEn];
 }

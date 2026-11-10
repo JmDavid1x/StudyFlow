@@ -1,14 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/features/auth/domain/auth_validators.dart';
+import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 import 'package:studyflow/features/auth/ui/widgets/auth_layout.dart';
-import 'package:studyflow/features/auth/ui/widgets/auth_validators.dart';
+import 'package:studyflow/features/auth/ui/widgets/auth_messages.dart';
 import 'package:studyflow/features/auth/ui/widgets/brand_mark.dart';
 
-/// Iniciar sesión (Figma 05): correo institucional y contraseña. "Entrar"
-/// lleva a la pestaña Inicio y borra el historial, para que el botón atrás
-/// no regrese al login.
+/// Iniciar sesión (Figma 05) con Supabase Auth. Si entra bien, va a la
+/// pestaña Inicio (o a la configuración inicial si no la terminó) y borra el
+/// historial, para que el botón atrás no regrese al login.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -38,17 +42,45 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submit() {
+    // Evita mandar el formulario dos veces (botón + Enter del teclado).
+    if (context.read<AuthBloc>().state.cargando(AccionAuth.inicioSesion)) return;
     setState(() => _triedToSubmit = true);
     if (_emailError != null || _passwordError != null) return;
-    // Sprint 2: aquí se inicia sesión con Supabase Auth.
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (_) => false, arguments: AppTabs.home);
+    FocusScope.of(context).unfocus();
+    context.read<AuthBloc>().add(InicioSesionPedido(correo: _email.text, contrasena: _password.text));
+  }
+
+  void _onState(BuildContext context, AuthState state) {
+    if (state.error(AccionAuth.inicioSesion)) {
+      showAuthError(context, state.mensaje);
+    } else if (state.exito(AccionAuth.inicioSesion)) {
+      // Si no terminó la configuración inicial, la retoma (Figma 08). Si el
+      // perfil no cargó (red), entra a la app y cada pestaña reintenta.
+      final configurado = state.perfil?.configuracionCompleta ?? true;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        configurado ? AppRoutes.main : AppRoutes.setupSubjects,
+        (_) => false,
+        arguments: configurado ? AppTabs.home : null,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loading = context.select((AuthBloc bloc) => bloc.state.cargando(AccionAuth.inicioSesion));
+
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (before, now) => now.accion == AccionAuth.inicioSesion && before.estado != now.estado,
+      listener: _onState,
+      child: _buildForm(loading),
+    );
+  }
+
+  Widget _buildForm(bool loading) {
     return AuthLayout(
       actions: [
-        SfButton(label: 'Entrar', onPressed: _submit),
+        SfButton(label: 'Entrar', isLoading: loading, onPressed: loading ? null : _submit),
         const SizedBox(height: SfSpacing.xxs),
         SfButton(
           label: '¿No tienes cuenta? Crea una',
@@ -58,7 +90,14 @@ class _LoginScreenState extends State<LoginScreen> {
       ],
       children: [
         const SizedBox(height: SfSpacing.lg),
-        const Align(alignment: Alignment.centerLeft, child: BrandMark()),
+        // En modo debug, dejar presionado el logo abre el menú de desarrollo.
+        Align(
+          alignment: Alignment.centerLeft,
+          child: GestureDetector(
+            onLongPress: kDebugMode ? () => Navigator.pushNamed(context, AppRoutes.devMenu) : null,
+            child: const BrandMark(),
+          ),
+        ),
         const SizedBox(height: SfSpacing.lg),
         const AuthHeading(title: 'Hola de nuevo', subtitle: 'Inicia sesión para ver tus entregas.'),
         const SizedBox(height: SfSpacing.lg),

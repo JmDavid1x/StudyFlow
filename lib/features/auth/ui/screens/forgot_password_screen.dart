@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/features/auth/domain/auth_validators.dart';
+import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 import 'package:studyflow/features/auth/ui/widgets/auth_layout.dart';
-import 'package:studyflow/features/auth/ui/widgets/auth_validators.dart';
+import 'package:studyflow/features/auth/ui/widgets/auth_messages.dart';
 
-/// Recuperar contraseña (Figma 06): se pide el correo y se envía un enlace.
-/// Pasa el correo a Correo enviado (Figma 07) para mostrarlo allá.
+/// Recuperar contraseña (Figma 06): Supabase Auth manda al correo un enlace
+/// para crear una nueva. Pasa el correo a Correo enviado (Figma 07).
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -27,17 +30,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   String? get _emailError => AuthValidators.email(_email.text);
 
   void _submit() {
+    if (context.read<AuthBloc>().state.cargando(AccionAuth.recuperacion)) return;
     setState(() => _triedToSubmit = true);
     if (_emailError != null) return;
-    // Sprint 2: aquí se pide el enlace a Supabase Auth.
-    Navigator.pushReplacementNamed(context, AppRoutes.emailSent, arguments: _email.text.trim());
+    FocusScope.of(context).unfocus();
+    context.read<AuthBloc>().add(RecuperacionPedida(_email.text));
+  }
+
+  void _onState(BuildContext context, AuthState state) {
+    if (state.error(AccionAuth.recuperacion)) {
+      showAuthError(context, state.mensaje);
+    } else if (state.exito(AccionAuth.recuperacion)) {
+      Navigator.pushReplacementNamed(context, AppRoutes.emailSent, arguments: state.correoEnviado);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loading = context.select((AuthBloc bloc) => bloc.state.cargando(AccionAuth.recuperacion));
+
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (before, now) => now.accion == AccionAuth.recuperacion && before.estado != now.estado,
+      listener: _onState,
+      child: _buildForm(loading),
+    );
+  }
+
+  Widget _buildForm(bool loading) {
     return AuthLayout(
       showBack: true,
-      actions: [SfButton(label: 'Enviar enlace', onPressed: _submit)],
+      actions: [SfButton(label: 'Enviar enlace', isLoading: loading, onPressed: loading ? null : _submit)],
       children: [
         const AuthHeading(
           title: 'Recupera tu contraseña',
