@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/features/subscription/ui/widgets/subscription_demo.dart';
+import 'package:studyflow/features/subscription/ui/widgets/plan_texts.dart';
 
 /// Tabla Gratis vs Plus. La columna Plus va resaltada en violeta.
 class PlanComparisonTable extends StatelessWidget {
@@ -15,7 +15,8 @@ class PlanComparisonTable extends StatelessWidget {
       return const SfEmptyState(
         icon: Icons.table_rows_outlined,
         title: 'No hay beneficios para comparar',
-        message: 'Vuelve a abrir StudyFlow Plus para ver qué incluye cada plan.',
+        message:
+            'Vuelve a abrir StudyFlow Plus para ver qué incluye cada plan.',
       );
     }
     return SfCard(
@@ -23,9 +24,18 @@ class PlanComparisonTable extends StatelessWidget {
       child: Column(
         children: [
           _row(
-            name: Text('Incluye', style: SfTypography.label.copyWith(color: SfColors.textSecondary)),
-            free: Text('Gratis', style: SfTypography.label.copyWith(color: SfColors.textSecondary)),
-            plus: Text('Plus', style: SfTypography.label.copyWith(color: SfColors.primaryLight)),
+            name: Text(
+              'Incluye',
+              style: SfTypography.label.copyWith(color: SfColors.textSecondary),
+            ),
+            free: Text(
+              'Gratis',
+              style: SfTypography.label.copyWith(color: SfColors.textSecondary),
+            ),
+            plus: Text(
+              'Plus',
+              style: SfTypography.label.copyWith(color: SfColors.primaryLight),
+            ),
           ),
           for (final feature in features) ...[
             const Divider(height: 1, color: SfColors.border),
@@ -40,9 +50,16 @@ class PlanComparisonTable extends StatelessWidget {
     );
   }
 
-  Widget _row({required Widget name, required Widget free, required Widget plus}) {
+  Widget _row({
+    required Widget name,
+    required Widget free,
+    required Widget plus,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: SfSpacing.md, vertical: SfSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SfSpacing.md,
+        vertical: SfSpacing.sm,
+      ),
       child: Row(
         children: [
           Expanded(flex: 5, child: name),
@@ -58,7 +75,10 @@ class PlanComparisonTable extends StatelessWidget {
     return Text(
       text,
       textAlign: TextAlign.center,
-      style: SfTypography.caption.copyWith(color: color, fontWeight: FontWeight.w600),
+      style: SfTypography.caption.copyWith(
+        color: color,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }

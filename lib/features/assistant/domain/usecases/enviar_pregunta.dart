@@ -74,4 +74,16 @@ class EnviarPregunta {
       orden: orden,
     );
   }
+
+  /// "Reintentar" (Figma 31): vuelve a pedirle a la IA la última pregunta.
+  /// Si responde, guarda su respuesta; si no, lanza [IaNoDisponible] y no
+  /// guarda nada (el orden de respaldo ya está en pantalla).
+  Future<MensajeAsistente> reintentar(String pregunta) async {
+    final pendientes = await _repositorio.actividadesPendientes();
+    final texto = await _repositorio.responderConIA(pregunta, pendientes);
+    return _repositorio.enviarMensaje(
+      rol: RolMensaje.asistente,
+      contenido: texto,
+    );
+  }
 }
