@@ -25,8 +25,8 @@ class ItemOrden extends Equatable {
   List<Object?> get props => [actividad.id, orden, motivo, horasSugeridas];
 }
 
-/// Orden de respaldo: el que usa el asistente cuando la IA no responde (y en
-/// el Sprint 2, siempre). No gasta consultas del plan gratis.
+/// Orden de respaldo: el que usa el asistente cuando la IA no responde o no le
+/// quedan consultas. No gasta consultas del plan gratis.
 ///
 /// De las actividades sin cerrar:
 /// 1. la que vence primero (por día de calendario);

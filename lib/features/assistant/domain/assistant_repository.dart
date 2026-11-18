@@ -2,8 +2,8 @@ import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/features/assistant/domain/orden_respaldo.dart';
 import 'package:studyflow/features/assistant/domain/programar_bloques.dart';
 
-/// La IA todavía no está conectada (llega en el Sprint 3). El caso de uso la
-/// atrapa y responde con el orden de respaldo.
+/// La IA no respondió: no hay llave, no le quedan consultas, falló o tardó.
+/// El caso de uso la atrapa y responde con el orden de respaldo.
 class IaNoDisponible implements Exception {
   const IaNoDisponible();
 }
@@ -21,7 +21,8 @@ abstract class AssistantRepository {
     bool usadoRespaldo = false,
   });
 
-  /// Respuesta de la IA a [pregunta]. En el Sprint 2 lanza [IaNoDisponible].
+  /// Respuesta de la IA a [pregunta] (Edge Function `asistente`). Si la IA no
+  /// responde, lanza [IaNoDisponible].
   Future<String> responderConIA(String pregunta, List<Actividad> pendientes);
 
   /// Actividades del periodo activo que no están cerradas, por fecha límite.
