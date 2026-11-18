@@ -33,3 +33,14 @@ Ya están aplicadas en el proyecto. Si alguien necesita un cambio en una tabla, 
 - **`completada_en` lo maneja la base:** se llena al pasar a `completada` o `presentado` y se borra en cualquier otro estado.
 - **"Vencida" la calcula la app** (`Actividad.estaVencida()`); la base no cambia estados por fecha.
 - **Errores:** `mensajeDeError(e)` (en `core/errors/app_exception.dart`, Dart puro) usa el traductor de Supabase que registra `main.dart`, así los mensajes salen en español sin que el domain dependa de Supabase.
+
+## Edge Functions (`supabase/functions/`) · Sprint 3
+
+| Función | Qué hace |
+| --- | --- |
+| `asistente` | Recibe `{ pregunta }` con la sesión del usuario, lee sus actividades pendientes (con RLS), revisa en el servidor el límite gratis (5 respuestas de la IA por semana, desde el lunes) o si tiene Plus, y le pregunta a Gemini. Devuelve `{ respuesta }`. |
+
+- La app la llama en `AssistantRepositoryImpl.responderConIA` con `supabase.functions.invoke('asistente', body: {'pregunta': ...})`.
+- Si no hay llave, no le quedan consultas, la IA falla o tarda más de 20 s, la app responde con el **orden de respaldo** (`usado_respaldo = true`, no gasta consulta).
+- La llave de la IA **no va en el código**: se guarda en Supabase → Edge Functions → Secrets como `GEMINI_API_KEY` (gratis en https://aistudio.google.com/apikey).
+- Para cambiar la función: editar `supabase/functions/asistente/index.ts` y pedirle a Jose que la despliegue.
