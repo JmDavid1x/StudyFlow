@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
 import 'package:studyflow/core/supabase/supabase_x.dart';
 import 'package:studyflow/features/tasks/data/tasks_repository_impl.dart';
 import 'package:studyflow/features/tasks/domain/filtros_tareas.dart';
@@ -23,7 +24,14 @@ class TasksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => TasksBloc(TasksRepositoryImpl(supabase))..add(const TareasPedidas()),
-      child: const _TasksView(),
+      // Si cambia algo desde otro dispositivo, la lista se actualiza sola.
+      child: Builder(
+        builder: (context) => RecargarEnVivo(
+          tablas: const {'actividades', 'calificaciones'},
+          alCambiar: () => context.read<TasksBloc>().add(const TareasPedidas()),
+          child: const _TasksView(),
+        ),
+      ),
     );
   }
 }

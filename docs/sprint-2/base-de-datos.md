@@ -44,3 +44,16 @@ Ya están aplicadas en el proyecto. Si alguien necesita un cambio en una tabla, 
 - Si no hay llave, no le quedan consultas, la IA falla o tarda más de 20 s, la app responde con el **orden de respaldo** (`usado_respaldo = true`, no gasta consulta).
 - La llave de la IA **no va en el código**: se guarda en Supabase → Edge Functions → Secrets como `GEMINI_API_KEY` (gratis en https://aistudio.google.com/apikey).
 - Para cambiar la función: editar `supabase/functions/asistente/index.ts` y pedirle a Jose que la despliegue.
+
+## Cambios en vivo (Realtime) · Sprint 3
+
+- Migración `…_realtime.sql`: `actividades`, `calificaciones`, `bloques_estudio`, `materias` y `notificaciones` están en la publicación `supabase_realtime`. Realtime respeta el RLS.
+- En la app: `lib/core/realtime/`. `CambiosEnVivo` es el contrato (Dart puro), `CambiosEnVivoSupabase` la implementación y `RecargarEnVivo` el widget que envuelve una pantalla y recarga su Bloc/Cubit cuando cambian sus tablas. Varios cambios seguidos se juntan en una sola recarga.
+- Ya lo usan Inicio y Tareas. Para usarlo en otra pantalla:
+  ```dart
+  RecargarEnVivo(
+    tablas: const {'materias', 'calificaciones'},
+    alCambiar: () => context.read<SubjectsCubit>().cargar(),
+    child: const _SubjectsView(),
+  )
+  ```

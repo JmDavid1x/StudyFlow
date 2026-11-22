@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
 import 'package:studyflow/core/supabase/supabase_x.dart';
 import 'package:studyflow/features/home/data/home_repository_impl.dart';
 import 'package:studyflow/features/home/domain/textos_inicio.dart';
@@ -30,7 +31,14 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => HomeCubit(HomeRepositoryImpl(supabase), TasksRepositoryImpl(supabase))..cargar(),
-      child: const _HomeView(),
+      // Si cambia algo desde otro dispositivo, Inicio se actualiza solo.
+      child: Builder(
+        builder: (context) => RecargarEnVivo(
+          tablas: const {'actividades', 'calificaciones', 'bloques_estudio', 'notificaciones'},
+          alCambiar: () => context.read<HomeCubit>().cargar(),
+          child: const _HomeView(),
+        ),
+      ),
     );
   }
 }
