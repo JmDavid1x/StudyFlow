@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:studyflow/app.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/errors/app_exception.dart';
 import 'package:studyflow/core/supabase/errores_supabase.dart';
 import 'package:studyflow/core/supabase/supabase_config.dart';
@@ -16,5 +17,8 @@ Future<void> main() async {
   );
   // Los errores de Supabase se muestran en español en toda la app.
   traductorDeErrores = traducirErrorDeSupabase;
+  // Inyección de dependencias (GetIt): qué implementación va detrás de cada
+  // contrato. Desde aquí las pantallas piden sl<Repositorio>().
+  configurarDependencias();
   runApp(const StudyFlowApp());
 }
