@@ -48,7 +48,7 @@ El asistente le pregunta a Gemini a través de la Edge Function `asistente` (`su
 flutter build apk --release
 ```
 
-El archivo queda en `build/app/outputs/flutter-apk/app-release.apk`. Se instala directo en el celular (permitir "instalar apps de origen desconocido").
+El archivo queda en `build/app/outputs/flutter-apk/app-release.apk`. También lo arma GitHub cada vez que se fusiona algo en `main`: pestaña **Actions** → la última corrida → **Artifacts** → `studyflow-apk`. Se instala directo en el celular (permitir "instalar apps de origen desconocido").
 
 Para revisar el código: `flutter analyze` y `flutter test`. GitHub corre los dos en cada PR (`.github/workflows/flutter.yml`).
 
