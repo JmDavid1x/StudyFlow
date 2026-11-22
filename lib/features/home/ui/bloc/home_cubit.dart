@@ -83,12 +83,13 @@ class HomeCubit extends Cubit<HomeState> {
     final ahora = _reloj();
     final rango = RangoInicio(ahora);
     try {
-      // Las cuatro consultas van a la vez; si una falla, llega su error.
+      // Las consultas van a la vez; si una falla, llega su error.
       final perfil = _inicio.perfil();
       final actividades = _inicio.actividadesEntre(rango.desde, rango.hasta);
+      final examen = _inicio.proximoExamen(ahora);
       final bloques = _inicio.bloquesEntre(rango.desde, rango.hasta);
       final notificaciones = _inicio.notificaciones();
-      await Future.wait<Object>([perfil, actividades, bloques, notificaciones]);
+      await Future.wait<Object?>([perfil, actividades, examen, bloques, notificaciones]);
       emit(
         state.copyWith(
           estado: EstadoInicio.listo,
@@ -99,6 +100,7 @@ class HomeCubit extends Cubit<HomeState> {
             bloques: await bloques,
             notificaciones: await notificaciones,
             ahora: ahora,
+            proximoExamen: await examen,
           ),
         ),
       );
@@ -122,8 +124,8 @@ class HomeCubit extends Cubit<HomeState> {
       }
     } catch (e) {
       emit(state.copyWith(aviso: mensajeDeError(e), avisoId: state.avisoId + 1));
-      return;
     }
+    // También si falló: así la lista muestra lo que quedó guardado de verdad.
     await cargar();
   }
 }

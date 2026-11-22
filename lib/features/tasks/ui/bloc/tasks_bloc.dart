@@ -49,8 +49,8 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
       }
     } catch (e) {
       emit(state.copyWith(aviso: mensajeDeError(e), avisoId: state.avisoId + 1));
-      return;
     }
+    // También si falló: así la lista muestra lo que quedó guardado de verdad.
     await _cargar(emit);
   }
 

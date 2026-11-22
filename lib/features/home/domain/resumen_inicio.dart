@@ -38,7 +38,8 @@ class ResumenInicio {
   /// Tareas y proyectos (no exámenes) con fecha de lunes a domingo.
   final int entregasSemana;
 
-  /// El examen pendiente más cercano que todavía no pasa (nulo si no hay).
+  /// El examen pendiente más cercano que todavía no pasa, aunque sea dentro
+  /// de un mes (nulo si no hay).
   final Actividad? proximoExamen;
 
   /// Σ (fin − inicio) de los bloques pendientes de la semana.
@@ -69,11 +70,16 @@ class ResumenInicio {
 
 /// Calcula Inicio a partir de lo que trae el repositorio. [ahora] llega por
 /// parámetro para probarlo con fechas fijas.
+///
+/// [proximoExamen] es el que trae `HomeRepository.proximoExamen` sin límite
+/// de fecha; [actividades] solo cubre [RangoInicio], así que un examen a más
+/// de 8 días únicamente llega por ahí.
 ResumenInicio calcularResumenInicio({
   required List<Actividad> actividades,
   required List<BloqueEstudio> bloques,
   required List<Notificacion> notificaciones,
   required DateTime ahora,
+  Actividad? proximoExamen,
 }) {
   final lunes = inicioDeSemana(ahora);
   final finSemana = finDeSemana(ahora);
@@ -85,10 +91,12 @@ ResumenInicio calcularResumenInicio({
   final deLaSemana = actividades.where((a) => estaEntre(a.fechaLimite, lunes, finSemana)).toList();
   final pendientes = actividades.where((a) => !a.estado.estaCerrada).toList();
 
+  // Por si el del rango es más reciente (se acaba de crear o presentar).
   final examenes =
-      pendientes
-          .where((a) => a.esExamen && a.estado == EstadoActividad.pendiente && !a.fechaLimite.isBefore(ahora))
-          .toList()
+      {
+          ...pendientes,
+          ?proximoExamen,
+        }.where((a) => a.esExamen && a.estado == EstadoActividad.pendiente && !a.fechaLimite.isBefore(ahora)).toList()
         ..sort((a, b) => a.fechaLimite.compareTo(b.fechaLimite));
 
   final horas = bloques

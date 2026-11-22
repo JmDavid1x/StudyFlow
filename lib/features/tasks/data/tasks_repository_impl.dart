@@ -38,21 +38,32 @@ class TasksRepositoryImpl implements TasksRepository {
   }
 
   @override
-  Future<void> completar(String id) async {
+  Future<void> marcarCompletada(String id) async {
     try {
       await _db
           .from('actividades')
           .update({'estado': EstadoActividad.completada.db, 'completada_en': _ahora})
           .eq('id', id);
+    } catch (e) {
+      throw AppException(mensajeDeError(e));
+    }
+  }
+
+  @override
+  Future<void> cancelarBloquesPendientes(String actividadId) async {
+    try {
       await _db
           .from('bloques_estudio')
           .update({'estado': EstadoBloque.cancelado.db})
-          .eq('actividad_id', id)
+          .eq('actividad_id', actividadId)
           .eq('estado', EstadoBloque.pendiente.db);
     } catch (e) {
       throw AppException(mensajeDeError(e));
     }
   }
+
+  @override
+  Future<void> restaurarEstado(String id, EstadoActividad estado) => _cambiarEstado(id, estado);
 
   @override
   Future<void> marcarNoEntregada(String id) => _cambiarEstado(id, EstadoActividad.noEntregada);

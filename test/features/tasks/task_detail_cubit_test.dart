@@ -39,12 +39,16 @@ void main() {
 
   TaskDetailCubit crear([Actividad? actividad]) => TaskDetailCubit(repositorio, actividad ?? tarea, reloj: () => ahora);
 
+  setUpAll(() => registerFallbackValue(EstadoActividad.porHacer));
+
   setUp(() {
     repositorio = _MockTasksRepository();
     when(() => repositorio.bloquesDeActividad(any())).thenAnswer((_) async => [hecho, pendiente, cancelado]);
     when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => [tarea, otra]);
     when(() => repositorio.actividadPorId(any())).thenAnswer((_) async => tarea);
-    when(() => repositorio.completar(any())).thenAnswer((_) async {});
+    when(() => repositorio.marcarCompletada(any())).thenAnswer((_) async {});
+    when(() => repositorio.cancelarBloquesPendientes(any())).thenAnswer((_) async {});
+    when(() => repositorio.restaurarEstado(any(), any())).thenAnswer((_) async {});
     when(() => repositorio.marcarNoEntregada(any())).thenAnswer((_) async {});
     when(() => repositorio.eliminar(any())).thenAnswer((_) async {});
   });
@@ -79,7 +83,7 @@ void main() {
       expect((s.resumen!.hechas, s.resumen!.total), (2, 2));
       expect(s.resumen!.bloquesQuitados.map((b) => b.id), ['b1']);
       expect(s.bloques.map((b) => b.id), ['b2']);
-      verify(() => repositorio.completar('a1')).called(1);
+      verify(() => repositorio.marcarCompletada('a1')).called(1);
     },
   );
 
@@ -91,6 +95,24 @@ void main() {
     verify: (cubit) {
       expect(cubit.state.resultado, ResultadoDetalle.completada);
       expect(cubit.state.resumen!.hechas, isNull);
+    },
+  );
+
+  blocTest<TaskDetailCubit, TaskDetailState>(
+    'si completar falla avisa, no abre S1 y vuelve a leer la actividad',
+    setUp: () {
+      when(() => repositorio.cancelarBloquesPendientes(any())).thenThrow(const AppException('Sin conexión.'));
+      when(() => repositorio.actividadPorId(any())).thenAnswer((_) async => tarea);
+    },
+    build: crear,
+    act: (cubit) => cubit.completar(),
+    verify: (cubit) {
+      expect(cubit.state.aviso, 'Sin conexión.');
+      expect(cubit.state.resultado, ResultadoDetalle.ninguno);
+      expect(cubit.state.actividad.estado, EstadoActividad.porHacer);
+      expect(cubit.state.ocupado, isFalse);
+      verify(() => repositorio.restaurarEstado('a1', EstadoActividad.porHacer)).called(1);
+      verify(() => repositorio.actividadPorId('a1')).called(1);
     },
   );
 

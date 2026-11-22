@@ -136,7 +136,9 @@ class TaskDetailCubit extends Cubit<TaskDetailState> {
     await cargarBloques();
   }
 
-  Future<void> completar() => _guardar(() async {
+  /// Si falla, vuelve a leer la actividad: CompletarActividad ya revirtió,
+  /// pero si no pudo, el detalle debe mostrar lo que quedó en la base.
+  Future<void> completar() => _guardar(recargarSiFalla: true, () async {
     final pendientes = state.bloques.where((b) => b.estado == EstadoBloque.pendiente).toList();
     await _completar(state.actividad);
     final hechaEn = _reloj();
@@ -183,15 +185,16 @@ class TaskDetailCubit extends Cubit<TaskDetailState> {
   });
 
   /// Corre una acción: desactiva los botones mientras tanto y avisa si falla.
-  Future<void> _guardar(Future<void> Function() accion) async {
+  Future<void> _guardar(Future<void> Function() accion, {bool recargarSiFalla = false}) async {
     if (state.ocupado) return;
     emit(state.copyWith(ocupado: true, resultado: ResultadoDetalle.ninguno));
     try {
       await accion();
       emit(state.copyWith(ocupado: false, cambio: true));
     } catch (e) {
-      emit(state.copyWith(ocupado: false));
+      emit(state.copyWith(ocupado: false, cambio: recargarSiFalla ? true : null));
       _avisar(e);
+      if (recargarSiFalla) await recargar();
     }
   }
 

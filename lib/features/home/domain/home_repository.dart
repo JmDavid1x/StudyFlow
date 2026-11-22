@@ -10,6 +10,10 @@ abstract class HomeRepository {
   /// ordenadas por fecha. El rango sale de [RangoInicio].
   Future<List<Actividad>> actividadesEntre(DateTime desde, DateTime hasta);
 
+  /// El examen pendiente más cercano del periodo activo con fecha desde
+  /// [desde], sin límite hacia adelante. Nulo si no hay.
+  Future<Actividad?> proximoExamen(DateTime desde);
+
   /// Bloques de estudio que empiezan en [desde, hasta), ordenados por inicio.
   Future<List<BloqueEstudio>> bloquesEntre(DateTime desde, DateTime hasta);
 

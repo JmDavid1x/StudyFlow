@@ -24,11 +24,15 @@ void main() {
 
   TasksBloc crear() => TasksBloc(repositorio, reloj: () => ahora);
 
+  setUpAll(() => registerFallbackValue(EstadoActividad.porHacer));
+
   setUp(() {
     repositorio = _MockTasksRepository();
     when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => [vencida, deHoy, deSemana, hecha]);
-    when(() => repositorio.completar(any())).thenAnswer((_) async {});
+    when(() => repositorio.marcarCompletada(any())).thenAnswer((_) async {});
+    when(() => repositorio.cancelarBloquesPendientes(any())).thenAnswer((_) async {});
     when(() => repositorio.marcarPresentado(any())).thenAnswer((_) async {});
+    when(() => repositorio.restaurarEstado(any(), any())).thenAnswer((_) async {});
   });
 
   blocTest<TasksBloc, TasksState>(
@@ -88,7 +92,7 @@ void main() {
     build: crear,
     act: (bloc) => bloc.add(CirculoTocado(deHoy)),
     verify: (_) {
-      verify(() => repositorio.completar('h')).called(1);
+      verify(() => repositorio.marcarCompletada('h')).called(1);
       verify(() => repositorio.actividadesDelPeriodo()).called(1);
     },
   );
@@ -101,13 +105,19 @@ void main() {
   );
 
   blocTest<TasksBloc, TasksState>(
-    'si la acción falla avisa y no recarga',
-    setUp: () => when(() => repositorio.completar(any())).thenThrow(const AppException('No pudimos guardar.')),
+    'si completar falla avisa con el mensaje y recarga para mostrar lo guardado',
+    setUp: () =>
+        when(() => repositorio.cancelarBloquesPendientes(any())).thenThrow(const AppException('No pudimos guardar.')),
     build: crear,
     act: (bloc) => bloc.add(CirculoTocado(deHoy)),
     expect: () => [
       isA<TasksState>().having((s) => s.aviso, 'aviso', 'No pudimos guardar.').having((s) => s.avisoId, 'id', 1),
+      isA<TasksState>().having((s) => s.estado, 'estado', EstadoTareas.listo),
     ],
-    verify: (_) => verifyNever(() => repositorio.actividadesDelPeriodo()),
+    verify: (_) {
+      // Se deshizo el completar y la lista se volvió a pedir.
+      verify(() => repositorio.restaurarEstado('h', EstadoActividad.porHacer)).called(1);
+      verify(() => repositorio.actividadesDelPeriodo()).called(1);
+    },
   );
 }

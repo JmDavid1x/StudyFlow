@@ -13,11 +13,13 @@ void main() {
     List<BloqueEstudio> bloques = const [],
     List<Notificacion> notificaciones = const [],
     DateTime? en,
+    Actividad? proximoExamen,
   }) => calcularResumenInicio(
     actividades: actividades,
     bloques: bloques,
     notificaciones: notificaciones,
     ahora: en ?? ahora,
+    proximoExamen: proximoExamen,
   );
 
   group('tarjetas', () {
@@ -49,6 +51,31 @@ void main() {
         ],
       );
       expect(r.proximoExamen?.id, 'jueves');
+    });
+
+    test('próximo examen a más de 8 días: llega aparte y sí se muestra', () {
+      final lejano = actividad('lejos', tipo: TipoActividad.examen, fecha: DateTime(2026, 12, 3, 8));
+      final r = resumen(
+        actividades: [actividad('t1', fecha: DateTime(2026, 11, 12))],
+        proximoExamen: lejano,
+      );
+      expect(r.proximoExamen?.id, 'lejos');
+    });
+
+    test('si hay uno más cercano dentro del rango, gana ese', () {
+      final cerca = actividad('cerca', tipo: TipoActividad.examen, fecha: DateTime(2026, 11, 13, 8));
+      final lejano = actividad('lejos', tipo: TipoActividad.examen, fecha: DateTime(2026, 12, 3, 8));
+      expect(resumen(actividades: [cerca], proximoExamen: lejano).proximoExamen?.id, 'cerca');
+    });
+
+    test('el que llega aparte no cuenta si ya se presentó', () {
+      final presentado = actividad(
+        'p',
+        tipo: TipoActividad.examen,
+        fecha: DateTime(2026, 12, 3, 8),
+        estado: EstadoActividad.presentado,
+      );
+      expect(resumen(proximoExamen: presentado).proximoExamen, isNull);
     });
 
     test('sin exámenes pendientes no hay próximo examen', () {

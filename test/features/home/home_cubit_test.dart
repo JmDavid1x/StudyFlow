@@ -31,19 +31,25 @@ void main() {
 
   HomeCubit crear() => HomeCubit(inicio, tareas, reloj: () => ahora);
 
-  setUpAll(() => registerFallbackValue(DateTime(2026)));
+  setUpAll(() {
+    registerFallbackValue(DateTime(2026));
+    registerFallbackValue(EstadoActividad.porHacer);
+  });
 
   setUp(() {
     inicio = _MockHomeRepository();
     tareas = _MockTasksRepository();
     when(() => inicio.perfil()).thenAnswer((_) async => perfil);
     when(() => inicio.actividadesEntre(any(), any())).thenAnswer((_) async => [deHoy, manana, examen]);
+    when(() => inicio.proximoExamen(any())).thenAnswer((_) async => examen);
     when(() => inicio.bloquesEntre(any(), any())).thenAnswer((_) async => []);
     when(
       () => inicio.notificaciones(),
     ).thenAnswer((_) async => [notificacion('n1', programadaPara: DateTime(2026, 11, 11, 7))]);
-    when(() => tareas.completar(any())).thenAnswer((_) async {});
+    when(() => tareas.marcarCompletada(any())).thenAnswer((_) async {});
+    when(() => tareas.cancelarBloquesPendientes(any())).thenAnswer((_) async {});
     when(() => tareas.marcarPresentado(any())).thenAnswer((_) async {});
+    when(() => tareas.restaurarEstado(any(), any())).thenAnswer((_) async {});
   });
 
   blocTest<HomeCubit, HomeState>(
@@ -59,6 +65,32 @@ void main() {
           .having((s) => s.resumen!.proximoExamen?.id, 'examen', 'e')
           .having((s) => s.resumen!.hayNovedades, 'novedades', isTrue),
     ],
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'el próximo examen sale aunque sea a más de 8 días (fuera del rango de Inicio)',
+    setUp: () {
+      final lejano = actividad('lejos', fecha: DateTime(2026, 12, 2, 8), tipo: TipoActividad.examen);
+      when(() => inicio.actividadesEntre(any(), any())).thenAnswer((_) async => [deHoy, manana]);
+      when(() => inicio.proximoExamen(any())).thenAnswer((_) async => lejano);
+    },
+    build: crear,
+    act: (cubit) => cubit.cargar(),
+    skip: 1,
+    expect: () => [isA<HomeState>().having((s) => s.resumen!.proximoExamen?.id, 'examen', 'lejos')],
+    verify: (_) => verify(() => inicio.proximoExamen(ahora)).called(1),
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'si completar falla avisa con el mensaje y recarga',
+    setUp: () => when(() => tareas.cancelarBloquesPendientes(any())).thenThrow(const AppException('Sin conexión.')),
+    build: crear,
+    act: (cubit) => cubit.marcar(deHoy),
+    verify: (cubit) {
+      expect(cubit.state.aviso, 'Sin conexión.');
+      verify(() => tareas.restaurarEstado('h', EstadoActividad.porHacer)).called(1);
+      verify(() => inicio.perfil()).called(1);
+    },
   );
 
   blocTest<HomeCubit, HomeState>(
@@ -98,7 +130,7 @@ void main() {
       await cubit.marcar(examen);
     },
     verify: (_) {
-      verify(() => tareas.completar('h')).called(1);
+      verify(() => tareas.marcarCompletada('h')).called(1);
       verify(() => tareas.marcarPresentado('e')).called(1);
       verify(() => inicio.perfil()).called(2);
     },

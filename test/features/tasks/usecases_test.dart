@@ -18,9 +18,13 @@ void main() {
   final manana = DateTime(2026, 11, 12, 10);
   final ayer = DateTime(2026, 11, 10, 10);
 
+  setUpAll(() => registerFallbackValue(EstadoActividad.porHacer));
+
   setUp(() {
     repositorio = _MockTasksRepository();
-    when(() => repositorio.completar(any())).thenAnswer((_) async {});
+    when(() => repositorio.marcarCompletada(any())).thenAnswer((_) async {});
+    when(() => repositorio.cancelarBloquesPendientes(any())).thenAnswer((_) async {});
+    when(() => repositorio.restaurarEstado(any(), any())).thenAnswer((_) async {});
     when(() => repositorio.marcarNoEntregada(any())).thenAnswer((_) async {});
     when(() => repositorio.marcarPresentado(any())).thenAnswer((_) async {});
     when(() => repositorio.eliminar(any())).thenAnswer((_) async {});
@@ -35,8 +39,53 @@ void main() {
       ];
       for (final tarea in casos) {
         await CompletarActividad(repositorio)(tarea);
-        verify(() => repositorio.completar(tarea.id)).called(1);
+        verify(() => repositorio.marcarCompletada(tarea.id)).called(1);
       }
+    });
+
+    test('completa la tarea y después cancela sus bloques pendientes', () async {
+      final tarea = actividad('a1', fecha: manana);
+      await CompletarActividad(repositorio)(tarea);
+      verifyInOrder([() => repositorio.marcarCompletada('a1'), () => repositorio.cancelarBloquesPendientes('a1')]);
+      verifyNever(() => repositorio.restaurarEstado(any(), any()));
+    });
+
+    test('si falla al marcarla no toca los bloques y avisa con el mensaje', () async {
+      when(() => repositorio.marcarCompletada(any())).thenThrow(const AppException('Sin conexión.'));
+      final tarea = actividad('a1', fecha: manana);
+      await expectLater(
+        CompletarActividad(repositorio)(tarea),
+        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', 'Sin conexión.')),
+      );
+      verifyNever(() => repositorio.cancelarBloquesPendientes(any()));
+      verifyNever(() => repositorio.restaurarEstado(any(), any()));
+    });
+
+    test('si fallan los bloques la devuelve a su estado anterior y avisa', () async {
+      when(() => repositorio.cancelarBloquesPendientes(any())).thenThrow(const AppException('Sin conexión.'));
+      final tarea = actividad('a1', fecha: manana, estado: EstadoActividad.enProgreso);
+      await expectLater(
+        CompletarActividad(repositorio)(tarea),
+        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', 'Sin conexión.')),
+      );
+      verify(() => repositorio.restaurarEstado('a1', EstadoActividad.enProgreso)).called(1);
+    });
+
+    test('si tampoco se puede deshacer, lo dice claro', () async {
+      when(() => repositorio.cancelarBloquesPendientes(any())).thenThrow(const AppException('Sin conexión.'));
+      when(() => repositorio.restaurarEstado(any(), any())).thenThrow(const AppException('Sin conexión.'));
+      await expectLater(
+        CompletarActividad(repositorio)(actividad('a1', fecha: manana)),
+        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', CompletarActividad.mensajeAMedias)),
+      );
+    });
+
+    test('un error técnico llega como mensaje en español', () async {
+      when(() => repositorio.marcarCompletada(any())).thenThrow(Exception('socket closed'));
+      await expectLater(
+        CompletarActividad(repositorio)(actividad('a1', fecha: manana)),
+        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', 'Algo salió mal. Intenta de nuevo.')),
+      );
     });
 
     test('no completa un examen ni algo ya cerrado', () {
@@ -44,7 +93,7 @@ void main() {
       final cerrada = actividad('a1', fecha: manana, estado: EstadoActividad.completada);
       expect(() => CompletarActividad(repositorio)(examen), throwsA(isA<AppException>()));
       expect(() => CompletarActividad(repositorio)(cerrada), throwsA(isA<AppException>()));
-      verifyNever(() => repositorio.completar(any()));
+      verifyNever(() => repositorio.marcarCompletada(any()));
     });
   });
 
