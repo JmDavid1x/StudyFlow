@@ -2,18 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/home/data/home_repository_impl.dart';
 import 'package:studyflow/features/home/domain/resumen_inicio.dart';
 import 'package:studyflow/features/home/domain/textos_inicio.dart';
 import 'package:studyflow/features/home/ui/bloc/home_cubit.dart';
 import 'package:studyflow/features/home/ui/widgets/pending_block_banner.dart';
 import 'package:studyflow/features/home/ui/widgets/today_plan_card.dart';
 import 'package:studyflow/features/home/ui/widgets/weekly_progress_card.dart';
-import 'package:studyflow/features/tasks/data/tasks_repository_impl.dart';
 import 'package:studyflow/features/tasks/domain/textos_actividad.dart';
 import 'package:studyflow/features/tasks/ui/widgets/task_badge.dart';
 import 'package:studyflow/features/tasks/ui/widgets/task_navigation.dart';
@@ -31,7 +29,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => HomeCubit(HomeRepositoryImpl(supabase), TasksRepositoryImpl(supabase))..cargar(),
+      create: (_) => sl<HomeCubit>()..cargar(),
       // Si cambia algo desde otro dispositivo, Inicio se actualiza solo.
       child: Builder(
         builder: (context) => RecargarEnVivo(

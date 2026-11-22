@@ -92,14 +92,23 @@ class TaskDetailState extends Equatable {
 /// Detalle de tarea (18) y de examen (29): carga los bloques y guarda las
 /// acciones. Recibe la actividad que se tocó en la lista.
 class TaskDetailCubit extends Cubit<TaskDetailState> {
-  TaskDetailCubit(TasksRepository repositorio, Actividad actividad, {DateTime Function()? reloj})
-    : _repositorio = repositorio,
-      _completar = CompletarActividad(repositorio),
-      _noEntregada = MarcarNoEntregada(repositorio),
-      _presentar = MarcarPresentado(repositorio),
-      _eliminar = EliminarActividad(repositorio),
-      _reloj = reloj ?? DateTime.now,
-      super(TaskDetailState(actividad: actividad));
+  /// Los casos de uso llegan de GetIt (tasks_di.dart, con la [actividad] como
+  /// parámetro); si no se pasan, se arman con el mismo [repositorio].
+  TaskDetailCubit(
+    TasksRepository repositorio,
+    Actividad actividad, {
+    CompletarActividad? completar,
+    MarcarNoEntregada? noEntregada,
+    MarcarPresentado? presentar,
+    EliminarActividad? eliminar,
+    DateTime Function()? reloj,
+  }) : _repositorio = repositorio,
+       _completar = completar ?? CompletarActividad(repositorio),
+       _noEntregada = noEntregada ?? MarcarNoEntregada(repositorio),
+       _presentar = presentar ?? MarcarPresentado(repositorio),
+       _eliminar = eliminar ?? EliminarActividad(repositorio),
+       _reloj = reloj ?? DateTime.now,
+       super(TaskDetailState(actividad: actividad));
 
   final TasksRepository _repositorio;
   final CompletarActividad _completar;

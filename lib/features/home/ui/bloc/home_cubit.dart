@@ -72,12 +72,19 @@ class HomeState extends Equatable {
 /// Pestaña Inicio: saludo, tarjetas, progreso semanal, prioridades de hoy,
 /// próximas y el aviso del bloque de ayer. Se crea en HomeScreen.
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._inicio, TasksRepository tareas, {DateTime Function()? reloj})
-    : _tareas = tareas,
-      _completar = CompletarActividad(tareas),
-      _presentar = MarcarPresentado(tareas),
-      _reloj = reloj ?? DateTime.now,
-      super(const HomeState());
+  /// Los casos de uso llegan de GetIt (home_di.dart); si no se pasan, se
+  /// arman con el mismo repositorio de [tareas].
+  HomeCubit(
+    this._inicio,
+    TasksRepository tareas, {
+    CompletarActividad? completar,
+    MarcarPresentado? presentar,
+    DateTime Function()? reloj,
+  }) : _tareas = tareas,
+       _completar = completar ?? CompletarActividad(tareas),
+       _presentar = presentar ?? MarcarPresentado(tareas),
+       _reloj = reloj ?? DateTime.now,
+       super(const HomeState());
 
   final HomeRepository _inicio;
   final TasksRepository _tareas;

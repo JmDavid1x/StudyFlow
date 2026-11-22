@@ -15,12 +15,18 @@ part 'tasks_state.dart';
 /// Pestaña Tareas: carga las actividades del periodo, las reparte en
 /// secciones y guarda el chip elegido. Se crea en TasksScreen.
 class TasksBloc extends Bloc<TasksEvent, TasksState> {
-  TasksBloc(TasksRepository repositorio, {DateTime Function()? reloj})
-    : _repositorio = repositorio,
-      _completar = CompletarActividad(repositorio),
-      _presentar = MarcarPresentado(repositorio),
-      _reloj = reloj ?? DateTime.now,
-      super(const TasksState()) {
+  /// Los casos de uso llegan de GetIt (tasks_di.dart); si no se pasan, se
+  /// arman con el mismo [repositorio] (así los tests solo dan el repositorio).
+  TasksBloc(
+    TasksRepository repositorio, {
+    CompletarActividad? completar,
+    MarcarPresentado? presentar,
+    DateTime Function()? reloj,
+  }) : _repositorio = repositorio,
+       _completar = completar ?? CompletarActividad(repositorio),
+       _presentar = presentar ?? MarcarPresentado(repositorio),
+       _reloj = reloj ?? DateTime.now,
+       super(const TasksState()) {
     // Una carga a la vez y en orden: una respuesta vieja no pisa a una nueva.
     on<TareasPedidas>(_onPedidas, transformer: (eventos, mapper) => eventos.asyncExpand(mapper));
     on<CambioEnVivo>((_, _) => _agrupar(() => add(const TareasPedidas())));

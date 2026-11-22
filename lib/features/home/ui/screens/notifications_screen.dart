@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/home/data/home_repository_impl.dart';
 import 'package:studyflow/features/home/domain/textos_inicio.dart';
 import 'package:studyflow/features/home/ui/bloc/notifications_cubit.dart';
 import 'package:studyflow/features/home/ui/widgets/notification_tile.dart';
-import 'package:studyflow/features/tasks/data/tasks_repository_impl.dart';
 import 'package:studyflow/features/tasks/ui/widgets/task_navigation.dart';
 
 /// Notificaciones (Figma 13): avisos agrupados por día. Tocar un aviso lo
@@ -19,10 +17,7 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => NotificationsCubit(HomeRepositoryImpl(supabase), TasksRepositoryImpl(supabase))..cargar(),
-      child: const _NotificationsView(),
-    );
+    return BlocProvider(create: (_) => sl<NotificationsCubit>()..cargar(), child: const _NotificationsView());
   }
 }
 

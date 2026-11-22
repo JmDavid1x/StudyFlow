@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/tasks/data/tasks_repository_impl.dart';
 import 'package:studyflow/features/tasks/domain/textos_actividad.dart';
 import 'package:studyflow/features/tasks/domain/usecases/marcar_presentado.dart';
 import 'package:studyflow/features/tasks/ui/bloc/task_detail_cubit.dart';
@@ -26,7 +25,7 @@ class ExamDetailScreen extends StatelessWidget {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is! Actividad) return const MissingActivity(title: 'Detalle de examen');
     return BlocProvider(
-      create: (_) => TaskDetailCubit(TasksRepositoryImpl(supabase), args)..cargarBloques(),
+      create: (_) => sl<TaskDetailCubit>(param1: args)..cargarBloques(),
       child: const _ExamDetailView(),
     );
   }
