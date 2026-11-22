@@ -28,6 +28,20 @@ class TasksRepositoryImpl implements TasksRepository {
   }
 
   @override
+  Future<bool> hayMaterias() async {
+    try {
+      final filas = await _db
+          .from('materias')
+          .select('id, periodos!inner(activo)')
+          .eq('periodos.activo', true)
+          .limit(1);
+      return filas.isNotEmpty;
+    } catch (e) {
+      throw AppException(mensajeDeError(e));
+    }
+  }
+
+  @override
   Future<Actividad?> actividadPorId(String id) async {
     try {
       final fila = await _db.from('actividades').select(Actividad.select).eq('id', id).maybeSingle();

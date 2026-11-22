@@ -66,6 +66,29 @@ class ResumenInicio {
 
   /// Figma 11: todavía no hay nada que entregar.
   bool get sinActividades => totalSemana == 0 && prioridadesHoy.isEmpty && proximas.isEmpty;
+
+  /// Hubo entregas esta semana, todas cerradas, y no viene nada en los próximos días.
+  bool get todoAlDia =>
+      totalSemana > 0 && completadasSemana == totalSemana && prioridadesHoy.isEmpty && proximas.isEmpty;
+}
+
+/// Qué estado vacío muestra Inicio. Nulo si hay algo pendiente.
+enum VacioInicio {
+  /// Sin materias en el periodo: primero hay que crear una.
+  sinMaterias,
+
+  /// Hay materias, pero nada que entregar estos días.
+  sinEntregas,
+
+  /// Todo lo de la semana está hecho.
+  todoAlDia,
+}
+
+/// [hayMaterias] solo importa si no hay actividades.
+VacioInicio? vacioDeInicio(ResumenInicio resumen, {required bool hayMaterias}) {
+  if (resumen.sinActividades) return hayMaterias ? VacioInicio.sinEntregas : VacioInicio.sinMaterias;
+  if (resumen.todoAlDia) return VacioInicio.todoAlDia;
+  return null;
 }
 
 /// Calcula Inicio a partir de lo que trae el repositorio. [ahora] llega por

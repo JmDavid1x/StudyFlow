@@ -84,3 +84,22 @@ TareasAgrupadas agruparTareas(List<Actividad> actividades, DateTime ahora) {
 /// la guardó con estado `vencida`.
 bool esVencida(Actividad actividad, DateTime ahora) =>
     !actividad.estado.estaCerrada && (actividad.estado == EstadoActividad.vencida || actividad.estaVencida(ahora));
+
+/// Por qué la pestaña Tareas no tiene nada pendiente que mostrar.
+enum VacioTareas {
+  /// Sin materias en el periodo: primero hay que crear una.
+  sinMaterias,
+
+  /// Hay materias, pero ninguna tarea todavía.
+  sinTareas,
+
+  /// Hay tareas y todas están cerradas.
+  todoAlDia,
+}
+
+/// Nulo si hay algo pendiente. [hayMaterias] solo importa si no hay actividades.
+VacioTareas? vacioDeTareas({required List<Actividad> actividades, required bool hayMaterias}) {
+  if (actividades.isEmpty) return hayMaterias ? VacioTareas.sinTareas : VacioTareas.sinMaterias;
+  if (actividades.every((a) => a.estado.estaCerrada)) return VacioTareas.todoAlDia;
+  return null;
+}

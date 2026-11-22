@@ -33,6 +33,7 @@ void main() {
     when(() => repositorio.cancelarBloquesPendientes(any())).thenAnswer((_) async {});
     when(() => repositorio.marcarPresentado(any())).thenAnswer((_) async {});
     when(() => repositorio.restaurarEstado(any(), any())).thenAnswer((_) async {});
+    when(() => repositorio.hayMaterias()).thenAnswer((_) async => true);
   });
 
   blocTest<TasksBloc, TasksState>(
@@ -54,7 +55,141 @@ void main() {
     setUp: () => when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => []),
     build: crear,
     act: (bloc) => bloc.add(const TareasPedidas()),
+    expect: () => [
+      cargando,
+      isA<TasksState>()
+          .having((s) => s.estado, 'estado', EstadoTareas.vacio)
+          .having((s) => s.vacio, 'vacio', VacioTareas.sinTareas),
+    ],
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'sin actividades ni materias pide crear primero una materia',
+    setUp: () {
+      when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => []);
+      when(() => repositorio.hayMaterias()).thenAnswer((_) async => false);
+    },
+    build: crear,
+    act: (bloc) => bloc.add(const TareasPedidas()),
+    skip: 1,
+    expect: () => [isA<TasksState>().having((s) => s.vacio, 'vacio', VacioTareas.sinMaterias)],
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'con actividades no pregunta por las materias',
+    build: crear,
+    act: (bloc) => bloc.add(const TareasPedidas()),
+    verify: (_) => verifyNever(() => repositorio.hayMaterias()),
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'todas cerradas queda al día y se siguen viendo en Completadas',
+    setUp: () => when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => [hecha]),
+    build: crear,
+    act: (bloc) => bloc.add(const TareasPedidas()),
+    skip: 1,
+    expect: () => [
+      isA<TasksState>()
+          .having((s) => s.estado, 'estado', EstadoTareas.listo)
+          .having((s) => s.vacio, 'vacio', VacioTareas.todoAlDia)
+          .having((s) => s.secciones.map((x) => x.titulo).toList(), 'secciones', ['Completadas']),
+    ],
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'recargar estando vacío no vuelve a "Cargando" (no parpadea)',
+    setUp: () => when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => []),
+    build: crear,
+    act: (bloc) async {
+      bloc.add(const TareasPedidas());
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const TareasPedidas());
+    },
+    wait: const Duration(milliseconds: 10),
+    // Solo el primer "cargando"; la recarga deja el estado vacío igual (no emite nada nuevo).
     expect: () => [cargando, isA<TasksState>().having((s) => s.estado, 'estado', EstadoTareas.vacio)],
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'varios cambios en vivo seguidos hacen una sola recarga',
+    build: crear,
+    act: (bloc) {
+      bloc
+        ..add(const CambioEnVivo())
+        ..add(const CambioEnVivo())
+        ..add(const CambioEnVivo());
+    },
+    wait: const Duration(milliseconds: 600),
+    verify: (_) => verify(() => repositorio.actividadesDelPeriodo()).called(1),
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'las recargas van en orden: una respuesta lenta no pisa a la nueva',
+    setUp: () {
+      var llamada = 0;
+      when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async {
+        llamada++;
+        if (llamada == 1) {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          return [vencida];
+        }
+        return [deHoy];
+      });
+    },
+    build: crear,
+    act: (bloc) {
+      bloc
+        ..add(const TareasPedidas())
+        ..add(const TareasPedidas());
+    },
+    wait: const Duration(milliseconds: 100),
+    verify: (bloc) => expect(bloc.state.grupos.hoy.map((a) => a.id), ['h']),
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'sin actividades ni materias: el estado vacío pide la primera materia',
+    setUp: () {
+      when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => []);
+      when(() => repositorio.hayMaterias()).thenAnswer((_) async => false);
+    },
+    build: crear,
+    act: (bloc) => bloc.add(const TareasPedidas()),
+    skip: 1,
+    expect: () => [isA<TasksState>().having((s) => s.vacio, 'vacío', VacioTareas.sinMaterias)],
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'con actividades no pregunta por las materias; todo cerrado = al día',
+    setUp: () => when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => [hecha]),
+    build: crear,
+    act: (bloc) => bloc.add(const TareasPedidas()),
+    skip: 1,
+    expect: () => [isA<TasksState>().having((s) => s.vacio, 'vacío', VacioTareas.todoAlDia)],
+    verify: (_) => verifyNever(() => repositorio.hayMaterias()),
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'recargar estando vacío no vuelve a "Cargando…" (no parpadea)',
+    setUp: () => when(() => repositorio.actividadesDelPeriodo()).thenAnswer((_) async => []),
+    build: crear,
+    act: (bloc) async {
+      bloc.add(const TareasPedidas());
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const TareasPedidas());
+    },
+    expect: () => [cargando, isA<TasksState>().having((s) => s.estado, 'estado', EstadoTareas.vacio)],
+  );
+
+  blocTest<TasksBloc, TasksState>(
+    'varios cambios en vivo seguidos hacen una sola recarga',
+    build: crear,
+    act: (bloc) {
+      bloc.add(const CambioEnVivo());
+      bloc.add(const CambioEnVivo());
+      bloc.add(const CambioEnVivo());
+    },
+    wait: const Duration(milliseconds: 600),
+    verify: (_) => verify(() => repositorio.actividadesDelPeriodo()).called(1),
   );
 
   blocTest<TasksBloc, TasksState>(

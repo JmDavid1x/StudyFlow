@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/errors/app_exception.dart';
 import 'package:studyflow/features/home/domain/home_repository.dart';
+import 'package:studyflow/features/home/domain/resumen_inicio.dart';
 import 'package:studyflow/features/home/ui/bloc/home_cubit.dart';
 import 'package:studyflow/features/tasks/domain/tasks_repository.dart';
 
@@ -50,6 +51,8 @@ void main() {
     when(() => tareas.cancelarBloquesPendientes(any())).thenAnswer((_) async {});
     when(() => tareas.marcarPresentado(any())).thenAnswer((_) async {});
     when(() => tareas.restaurarEstado(any(), any())).thenAnswer((_) async {});
+    when(() => tareas.hayMaterias()).thenAnswer((_) async => true);
+    when(() => tareas.hayMaterias()).thenAnswer((_) async => true);
   });
 
   blocTest<HomeCubit, HomeState>(
@@ -91,6 +94,128 @@ void main() {
       verify(() => tareas.restaurarEstado('h', EstadoActividad.porHacer)).called(1);
       verify(() => inicio.perfil()).called(1);
     },
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'sin nada que entregar ni materias: el estado vacío pide la primera materia',
+    setUp: () {
+      when(() => inicio.actividadesEntre(any(), any())).thenAnswer((_) async => []);
+      when(() => inicio.proximoExamen(any())).thenAnswer((_) async => null);
+      when(() => tareas.hayMaterias()).thenAnswer((_) async => false);
+    },
+    build: crear,
+    act: (cubit) => cubit.cargar(),
+    skip: 1,
+    expect: () => [isA<HomeState>().having((s) => s.vacio, 'vacío', VacioInicio.sinMaterias)],
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'con pendientes no hay estado vacío ni se pregunta por las materias',
+    build: crear,
+    act: (cubit) => cubit.cargar(),
+    skip: 1,
+    expect: () => [isA<HomeState>().having((s) => s.vacio, 'vacío', isNull)],
+    verify: (_) => verifyNever(() => tareas.hayMaterias()),
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'dos cargas pedidas a la vez no se pisan: la segunda corre al terminar la primera',
+    build: crear,
+    act: (cubit) => Future.wait([cubit.cargar(), cubit.cargar(), cubit.cargar()]),
+    verify: (_) => verify(() => inicio.perfil()).called(2),
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'varios cambios en vivo seguidos hacen una sola recarga',
+    build: crear,
+    act: (cubit) {
+      cubit.cambioEnVivo();
+      cubit.cambioEnVivo();
+      cubit.cambioEnVivo();
+    },
+    wait: const Duration(milliseconds: 600),
+    verify: (_) => verify(() => inicio.perfil()).called(1),
+  );
+
+  group('estados vacíos', () {
+    void sinNada() {
+      when(() => inicio.actividadesEntre(any(), any())).thenAnswer((_) async => []);
+      when(() => inicio.proximoExamen(any())).thenAnswer((_) async => null);
+    }
+
+    blocTest<HomeCubit, HomeState>(
+      'sin materias pide crear la primera',
+      setUp: () {
+        sinNada();
+        when(() => tareas.hayMaterias()).thenAnswer((_) async => false);
+      },
+      build: crear,
+      act: (cubit) => cubit.cargar(),
+      verify: (cubit) => expect(cubit.state.vacio, VacioInicio.sinMaterias),
+    );
+
+    blocTest<HomeCubit, HomeState>(
+      'con materias y sin entregas pide crear la primera entrega',
+      setUp: sinNada,
+      build: crear,
+      act: (cubit) => cubit.cargar(),
+      verify: (cubit) => expect(cubit.state.vacio, VacioInicio.sinEntregas),
+    );
+
+    blocTest<HomeCubit, HomeState>(
+      'todo lo de la semana cerrado: al día',
+      setUp: () {
+        when(() => inicio.actividadesEntre(any(), any())).thenAnswer(
+          (_) async => [actividad('c', fecha: DateTime(2026, 11, 10, 8), estado: EstadoActividad.completada)],
+        );
+        when(() => inicio.proximoExamen(any())).thenAnswer((_) async => null);
+      },
+      build: crear,
+      act: (cubit) => cubit.cargar(),
+      verify: (cubit) {
+        expect(cubit.state.vacio, VacioInicio.todoAlDia);
+        verifyNever(() => tareas.hayMaterias());
+      },
+    );
+
+    blocTest<HomeCubit, HomeState>(
+      'con pendientes no hay estado vacío',
+      build: crear,
+      act: (cubit) => cubit.cargar(),
+      verify: (cubit) => expect(cubit.state.vacio, isNull),
+    );
+  });
+
+  blocTest<HomeCubit, HomeState>(
+    'varios cambios en vivo seguidos hacen una sola recarga',
+    build: crear,
+    act: (cubit) {
+      cubit
+        ..cambioEnVivo()
+        ..cambioEnVivo()
+        ..cambioEnVivo();
+    },
+    wait: const Duration(milliseconds: 600),
+    verify: (_) => verify(() => inicio.perfil()).called(1),
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'si piden cargar mientras ya carga, no se pisan: una más al terminar',
+    build: crear,
+    act: (cubit) => Future.wait([cubit.cargar(), cubit.cargar(), cubit.cargar()]),
+    verify: (_) => verify(() => inicio.perfil()).called(2),
+  );
+
+  blocTest<HomeCubit, HomeState>(
+    'recargar con datos no vuelve a "Cargando" (no parpadea)',
+    build: crear,
+    act: (cubit) async {
+      await cubit.cargar();
+      await cubit.cargar();
+    },
+    skip: 2,
+    verify: (cubit) => expect(cubit.state.estado, EstadoInicio.listo),
+    expect: () => isNot(contains(isA<HomeState>().having((s) => s.estado, 'estado', EstadoInicio.cargando))),
   );
 
   blocTest<HomeCubit, HomeState>(

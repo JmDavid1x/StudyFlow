@@ -7,6 +7,7 @@ import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
 import 'package:studyflow/core/supabase/supabase_x.dart';
 import 'package:studyflow/features/home/data/home_repository_impl.dart';
+import 'package:studyflow/features/home/domain/resumen_inicio.dart';
 import 'package:studyflow/features/home/domain/textos_inicio.dart';
 import 'package:studyflow/features/home/ui/bloc/home_cubit.dart';
 import 'package:studyflow/features/home/ui/widgets/pending_block_banner.dart';
@@ -35,7 +36,7 @@ class HomeScreen extends StatelessWidget {
       child: Builder(
         builder: (context) => RecargarEnVivo(
           tablas: const {'actividades', 'calificaciones', 'bloques_estudio', 'notificaciones'},
-          alCambiar: () => context.read<HomeCubit>().cargar(),
+          alCambiar: () => context.read<HomeCubit>().cambioEnVivo(),
           child: const _HomeView(),
         ),
       ),
@@ -101,7 +102,9 @@ class _HomeView extends StatelessWidget {
       ];
     }
 
-    final empty = resumen.sinActividades;
+    final vacio = state.vacio;
+    // Sin materias o sin entregas: Figma 11 (sin progreso ni listas).
+    final empty = vacio == VacioInicio.sinMaterias || vacio == VacioInicio.sinEntregas;
     final pendingBlock = resumen.bloquePendienteAyer;
     final (examValue, examCaption) = tarjetaExamen(resumen.proximoExamen, ahora);
 
@@ -141,49 +144,70 @@ class _HomeView extends StatelessWidget {
       ),
       if (empty) ...[
         const SizedBox(height: SfSpacing.xl),
-        SfEmptyState(
-          icon: Icons.edit_calendar_outlined,
-          title: 'Aún no tienes entregas',
-          message: 'Agrega la primera y te recordamos antes de que venza.',
-          actionLabel: 'Agregar mi primera entrega',
-          onAction: () => _push(context, AppRoutes.newTask),
-        ),
+        if (vacio == VacioInicio.sinMaterias)
+          SfEmptyState(
+            icon: Icons.school_outlined,
+            title: 'Empieza por tus materias',
+            message: 'Agrega las materias del semestre y luego sus entregas y exámenes.',
+            actionLabel: 'Agregar mi primera materia',
+            onAction: () => _push(context, AppRoutes.newSubject),
+          )
+        else
+          SfEmptyState(
+            icon: Icons.edit_calendar_outlined,
+            title: 'Aún no tienes entregas',
+            message: 'Agrega la primera y te recordamos antes de que venza.',
+            actionLabel: 'Agregar mi primera entrega',
+            onAction: () => _push(context, AppRoutes.newTask),
+          ),
       ] else ...[
         const SizedBox(height: SfSpacing.md),
         WeeklyProgressCard(done: resumen.completadasSemana, total: resumen.totalSemana),
         const SizedBox(height: SfSpacing.md),
         TodayPlanCard(plan: _planSinDatos, onTalk: () => _push(context, AppRoutes.assistant)),
         const SizedBox(height: SfSpacing.lg),
-        SfSectionHeader(
-          title: 'Prioridades de hoy',
-          actionLabel: 'Ver todas',
-          onAction: () =>
-              Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (_) => false, arguments: AppTabs.tasks),
-        ),
-        const SizedBox(height: SfSpacing.xs),
-        if (resumen.prioridadesHoy.isEmpty)
-          const SfCard(
+        if (vacio == VacioInicio.todoAlDia)
+          SfCard(
             child: SfEmptyState(
-              icon: Icons.wb_sunny_outlined,
-              title: 'Nada vence hoy',
-              message: 'Adelanta algo de los próximos días o agrega una tarea con el botón +.',
+              icon: Icons.celebration_outlined,
+              title: '¡Semana al día!',
+              message: 'Cerraste todo lo de esta semana y no viene nada en los próximos días.',
+              actionLabel: 'Agregar una entrega',
+              onAction: () => _push(context, AppRoutes.newTask),
             ),
           )
-        else
-          for (final actividad in resumen.prioridadesHoy) _tile(context, actividad, ahora),
-        const SizedBox(height: SfSpacing.md),
-        const SfSectionHeader(title: 'Próximas'),
-        const SizedBox(height: SfSpacing.xs),
-        if (resumen.proximas.isEmpty)
-          const SfCard(
-            child: SfEmptyState(
-              icon: Icons.event_available_outlined,
-              title: 'Nada para los próximos días',
-              message: 'Cuando agregues una entrega, aparecerá aquí.',
-            ),
-          )
-        else
-          for (final actividad in resumen.proximas) _tile(context, actividad, ahora),
+        else ...[
+          SfSectionHeader(
+            title: 'Prioridades de hoy',
+            actionLabel: 'Ver todas',
+            onAction: () =>
+                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.main, (_) => false, arguments: AppTabs.tasks),
+          ),
+          const SizedBox(height: SfSpacing.xs),
+          if (resumen.prioridadesHoy.isEmpty)
+            const SfCard(
+              child: SfEmptyState(
+                icon: Icons.wb_sunny_outlined,
+                title: 'Nada vence hoy',
+                message: 'Adelanta algo de los próximos días o agrega una tarea con el botón +.',
+              ),
+            )
+          else
+            for (final actividad in resumen.prioridadesHoy) _tile(context, actividad, ahora),
+          const SizedBox(height: SfSpacing.md),
+          const SfSectionHeader(title: 'Próximas'),
+          const SizedBox(height: SfSpacing.xs),
+          if (resumen.proximas.isEmpty)
+            const SfCard(
+              child: SfEmptyState(
+                icon: Icons.event_available_outlined,
+                title: 'Nada para los próximos días',
+                message: 'Cuando agregues una entrega, aparecerá aquí.',
+              ),
+            )
+          else
+            for (final actividad in resumen.proximas) _tile(context, actividad, ahora),
+        ],
       ],
     ];
   }

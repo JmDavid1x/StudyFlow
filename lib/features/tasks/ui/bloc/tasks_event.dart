@@ -13,6 +13,11 @@ final class TareasPedidas extends TasksEvent {
   const TareasPedidas();
 }
 
+/// Realtime avisó que cambió algo. Varios seguidos se juntan en una recarga.
+final class CambioEnVivo extends TasksEvent {
+  const CambioEnVivo();
+}
+
 /// Se tocó un chip de arriba.
 final class FiltroCambiado extends TasksEvent {
   const FiltroCambiado(this.filtro);

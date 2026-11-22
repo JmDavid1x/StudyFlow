@@ -197,6 +197,25 @@ void main() {
     });
   });
 
+  group('vacioDeInicio', () {
+    test('sin actividades: según haya materias o no', () {
+      expect(vacioDeInicio(resumen(), hayMaterias: false), VacioInicio.sinMaterias);
+      expect(vacioDeInicio(resumen(), hayMaterias: true), VacioInicio.sinEntregas);
+    });
+
+    test('todo lo de la semana cerrado y nada viene = al día', () {
+      final r = resumen(
+        actividades: [actividad('t1', fecha: DateTime(2026, 11, 10), estado: EstadoActividad.completada)],
+      );
+      expect(vacioDeInicio(r, hayMaterias: true), VacioInicio.todoAlDia);
+    });
+
+    test('con algo pendiente no hay estado vacío', () {
+      final r = resumen(actividades: [actividad('t1', fecha: DateTime(2026, 11, 12))]);
+      expect(vacioDeInicio(r, hayMaterias: true), isNull);
+    });
+  });
+
   group('RangoInicio', () {
     test('un miércoles pide del lunes al miércoles siguiente', () {
       final rango = RangoInicio(ahora);
@@ -208,6 +227,30 @@ void main() {
       final rango = RangoInicio(DateTime(2026, 11, 16, 9));
       expect(rango.desde, DateTime(2026, 11, 15));
       expect(rango.hasta, DateTime(2026, 11, 24));
+    });
+  });
+
+  group('vacioDeInicio', () {
+    test('sin actividades: depende de si hay materias', () {
+      expect(vacioDeInicio(resumen(), hayMaterias: false), VacioInicio.sinMaterias);
+      expect(vacioDeInicio(resumen(), hayMaterias: true), VacioInicio.sinEntregas);
+    });
+
+    test('todo lo de la semana cerrado y nada próximo: al día', () {
+      final r = resumen(
+        actividades: [actividad('c', fecha: DateTime(2026, 11, 10, 8), estado: EstadoActividad.completada)],
+      );
+      expect(vacioDeInicio(r, hayMaterias: true), VacioInicio.todoAlDia);
+    });
+
+    test('si viene algo en los próximos días no está al día', () {
+      final r = resumen(
+        actividades: [
+          actividad('c', fecha: DateTime(2026, 11, 10, 8), estado: EstadoActividad.completada),
+          actividad('m', fecha: DateTime(2026, 11, 13, 8)),
+        ],
+      );
+      expect(vacioDeInicio(r, hayMaterias: true), isNull);
     });
   });
 }

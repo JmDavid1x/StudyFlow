@@ -24,6 +24,7 @@ class TasksState extends Equatable {
     this.estado = EstadoTareas.cargando,
     this.filtro = FiltroTareas.todas,
     this.grupos = _sinTareas,
+    this.vacio,
     this.ahora,
     this.mensaje,
     this.aviso,
@@ -33,6 +34,9 @@ class TasksState extends Equatable {
   final EstadoTareas estado;
   final FiltroTareas filtro;
   final TareasAgrupadas grupos;
+
+  /// Por qué no hay pendientes (sin materias, sin tareas o todo al día). Nulo si hay.
+  final VacioTareas? vacio;
 
   /// Hora con la que se agrupó (para que los textos "hoy", "mañana" coincidan).
   final DateTime? ahora;
@@ -63,6 +67,7 @@ class TasksState extends Equatable {
     EstadoTareas? estado,
     FiltroTareas? filtro,
     TareasAgrupadas? grupos,
+    VacioTareas? Function()? vacio,
     DateTime? ahora,
     String? mensaje,
     String? aviso,
@@ -71,6 +76,7 @@ class TasksState extends Equatable {
     estado: estado ?? this.estado,
     filtro: filtro ?? this.filtro,
     grupos: grupos ?? this.grupos,
+    vacio: vacio == null ? this.vacio : vacio(),
     ahora: ahora ?? this.ahora,
     mensaje: mensaje ?? this.mensaje,
     aviso: aviso ?? this.aviso,
@@ -86,6 +92,7 @@ class TasksState extends Equatable {
     grupos.semana,
     grupos.masAdelante,
     grupos.completadas,
+    vacio,
     ahora,
     mensaje,
     aviso,

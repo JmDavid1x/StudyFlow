@@ -6,6 +6,9 @@ abstract class TasksRepository {
   /// Actividades de las materias del periodo activo, ordenadas por fecha límite.
   Future<List<Actividad>> actividadesDelPeriodo();
 
+  /// Si el periodo activo tiene al menos una materia (para el estado vacío).
+  Future<bool> hayMaterias();
+
   /// Una actividad con su materia (para recargar el detalle). Nula si ya no existe.
   Future<Actividad?> actividadPorId(String id);
 
