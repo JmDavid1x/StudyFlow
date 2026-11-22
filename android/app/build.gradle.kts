@@ -27,8 +27,9 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Para la entrega del curso el APK se firma con la llave de debug
+            // (se instala directo, sin Play Store). Para publicar habría que
+            // crear una llave propia (keystore) y configurarla aquí.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
