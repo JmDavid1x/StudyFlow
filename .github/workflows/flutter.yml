@@ -49,3 +49,31 @@ jobs:
         with:
           name: studyflow-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+  # Deploy: al fusionar en main, la versión web queda publicada en GitHub Pages
+  # (https://jmdavid1x.github.io/StudyFlow/). Requiere Settings → Pages →
+  # Source: "GitHub Actions".
+  web:
+    needs: analizar-y-probar
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.8
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web --release --base-href /StudyFlow/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - id: deploy
+        uses: actions/deploy-pages@v4

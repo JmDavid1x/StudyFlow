@@ -3,10 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_router.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/auth/data/auth_repository_impl.dart';
 import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 
 /// Widget raíz: tema, idioma, rutas y el AuthBloc que comparte toda la app.
@@ -35,7 +34,7 @@ class _StudyFlowAppState extends State<StudyFlowApp> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AuthBloc(AuthRepositoryImpl(supabase))..add(const AuthIniciado()),
+      create: (_) => sl<AuthBloc>()..add(const AuthIniciado()),
       child: MaterialApp(
         title: 'StudyFlow',
         debugShowCheckedModeBanner: false,

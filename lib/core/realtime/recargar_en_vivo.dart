@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/realtime/cambios_en_vivo.dart';
-import 'package:studyflow/core/realtime/cambios_en_vivo_supabase.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
 
 /// Envuelve una pantalla y llama [alCambiar] cuando cambian sus [tablas] en
 /// Supabase. Mientras la pantalla existe, la suscripción sigue abierta; al
@@ -30,7 +29,7 @@ class RecargarEnVivo extends StatefulWidget {
   final VoidCallback alCambiar;
   final Widget child;
 
-  /// Para los tests; si es null usa Supabase Realtime.
+  /// Para los tests; si es null lo pide a GetIt (Supabase Realtime).
   final CambiosEnVivo? cambios;
 
   @override
@@ -43,7 +42,7 @@ class _RecargarEnVivoState extends State<RecargarEnVivo> {
   @override
   void initState() {
     super.initState();
-    final cambios = widget.cambios ?? CambiosEnVivoSupabase(supabase);
+    final cambios = widget.cambios ?? sl<CambiosEnVivo>();
     _suscripcion = cambios.de(widget.tablas).listen(
           (_) => widget.alCambiar(),
           // Sin conexión en vivo la app sigue funcionando con recargas normales.
