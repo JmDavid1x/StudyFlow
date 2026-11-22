@@ -13,9 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Versión fija: la misma con la que trabaja el equipo. Con "stable" a secas,
+      # cada versión nueva de Flutter puede romper el CI sin que cambie el código.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.44.8
           cache: true
       - run: flutter pub get
       - run: flutter analyze

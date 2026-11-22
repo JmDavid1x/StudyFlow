@@ -56,13 +56,31 @@ class AssistantRepositoryImpl implements AssistantRepository {
     }
   }
 
+  /// Cuánto se espera a la IA antes de responder con el orden de respaldo.
+  static const _esperaIA = Duration(seconds: 20);
+
+  /// Le pregunta a la Edge Function `asistente` (supabase/functions/asistente).
+  /// La función lee las actividades pendientes con la sesión del usuario (RLS),
+  /// revisa el límite del plan gratis en el servidor y llama a la IA.
+  /// Cualquier falla (sin llave, sin consultas, error o demora) se vuelve
+  /// [IaNoDisponible] y el caso de uso responde con el orden de respaldo.
   @override
   Future<String> responderConIA(
     String pregunta,
     List<Actividad> pendientes,
   ) async {
-    // TODO(sprint-3): llamar al servicio de IA (Edge Function) con la pregunta
-    // y las actividades pendientes. Mientras tanto se usa el orden de respaldo.
+    try {
+      final res = await _db.functions
+          .invoke('asistente', body: {'pregunta': pregunta})
+          .timeout(_esperaIA);
+      final datos = res.data;
+      final respuesta = datos is Map ? datos['respuesta'] : null;
+      if (respuesta is String && respuesta.trim().isNotEmpty) {
+        return respuesta.trim();
+      }
+    } catch (_) {
+      // Sigue abajo: la app responde con el orden de respaldo.
+    }
     throw const IaNoDisponible();
   }
 
