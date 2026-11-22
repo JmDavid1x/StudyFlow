@@ -13,6 +13,7 @@ Proyecto final de **Aplicaciones Móviles** · Universidad Icesi · 2026-2.
 
 ## Enlaces
 
+- App web (deploy): https://jmdavid1x.github.io/StudyFlow/
 - Prototipo (play): https://www.figma.com/proto/avphm2BLhDZvOOqLqfxNbJ/StudyFlow?node-id=1-3&starting-point-node-id=1-3
 - Diseño: https://www.figma.com/design/avphm2BLhDZvOOqLqfxNbJ
 
@@ -41,6 +42,11 @@ Para probar con datos: regístrate con tu correo institucional, deja presionado 
 ### Asistente con IA
 
 El asistente le pregunta a Gemini a través de la Edge Function `asistente` (`supabase/functions/asistente`). La llave **no está en el código**: se guarda en Supabase → Edge Functions → Secrets como `GEMINI_API_KEY`. Sin llave (o si la IA falla o se acaban las 5 consultas gratis de la semana), el asistente responde con el orden de respaldo y no gasta consulta.
+
+### Deploy
+
+- **Web:** cada vez que se fusiona algo en `main`, GitHub Actions compila la versión web y la publica en GitHub Pages: https://jmdavid1x.github.io/StudyFlow/
+- **Android:** el mismo flujo arma el APK (abajo).
 
 ### APK para instalar en Android
 

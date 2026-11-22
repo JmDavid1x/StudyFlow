@@ -51,9 +51,11 @@ class AuthRepositoryImpl implements AuthRepository {
       _intentar(() => _db.auth.signInWithPassword(email: correo, password: contrasena));
 
   /// A dónde lleva el enlace del correo: en el celular, al deep link de la
-  /// app (AndroidManifest / Info.plist); en Chrome, a la misma página.
-  /// Las dos direcciones deben estar en Supabase → Authentication → URL Configuration.
-  static String get enlaceRecuperacion => kIsWeb ? Uri.base.origin : 'studyflow://reset-password';
+  /// app (AndroidManifest / Info.plist); en la web, a la misma página
+  /// (con su ruta: en GitHub Pages la app vive en /StudyFlow/).
+  /// Las direcciones deben estar en Supabase → Authentication → URL Configuration.
+  static String get enlaceRecuperacion =>
+      kIsWeb ? '${Uri.base.origin}${Uri.base.path}' : 'studyflow://reset-password';
 
   @override
   Future<void> recuperarContrasena(String correo) =>
