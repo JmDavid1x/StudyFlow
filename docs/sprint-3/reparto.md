@@ -19,6 +19,26 @@ Mínimo **un commit por día**, cada uno desde su cuenta.
 - **Cambios en vivo:** `lib/core/realtime/`. Envuelve tu pantalla con `RecargarEnVivo(tablas: {...}, alCambiar: ..., child: ...)` y se recarga sola cuando cambian esas tablas (ver `docs/sprint-2/base-de-datos.md`). Ya lo usan Inicio y Tareas.
 - **CI** fijado a Flutter 3.44.8. Usa esa versión (`flutter --version`).
 
+## GetIt (inyección de dependencias): OBLIGATORIO
+
+El profe lo exige en la entrega. Ya está montado (`lib/core/di/inyeccion.dart`): cada repositorio está registrado por su contrato en `lib/features/<parte>/<parte>_di.dart`.
+
+Lo que hace cada uno en SU parte:
+1. En tus pantallas y rutas, cambia `XRepositoryImpl(supabase)` por `sl<XRepository>()` (import `package:studyflow/core/di/inyeccion.dart` y el contrato de `domain/`). Ninguna pantalla debe importar algo de `data/`.
+2. Registra tus Cubits/Blocs y casos de uso en tu `<parte>_di.dart` con `sl.registerFactory(...)` y créalos con `sl<MiCubit>()`. Si el Cubit recibe argumentos de la ruta (una Materia, una Actividad), usa `registerFactoryParam`.
+3. Un test que use `sl` con un repositorio falso registrado.
+
+```dart
+// lib/features/tasks/tasks_di.dart
+void registrarTasks(GetIt sl) {
+  sl.registerLazySingleton<TasksRepository>(() => TasksRepositoryImpl(sl()));
+  sl.registerFactory<TasksBloc>(() => TasksBloc(sl()));
+}
+
+// tasks_screen.dart
+BlocProvider(create: (_) => sl<TasksBloc>()..add(const TareasPedidas()), ...)
+```
+
 ## Cómo empezar
 
 ```bash
