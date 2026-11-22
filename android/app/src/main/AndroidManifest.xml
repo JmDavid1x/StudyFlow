@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Sin este permiso el APK de release no puede hablar con Supabase
+         (en debug funciona porque Flutter lo agrega solo). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="studyflow"
+        android:label="StudyFlow"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
