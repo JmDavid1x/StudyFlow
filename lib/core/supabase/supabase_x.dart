@@ -5,8 +5,8 @@ import 'package:studyflow/core/errors/app_exception.dart';
 /// Atajo al cliente de Supabase ya inicializado en main.dart.
 ///
 /// Las pantallas NO crean repositorios con este cliente: los piden a GetIt
-/// (lib/core/di/inyeccion.dart), que ya sabe qué implementación usar:
-///   BlocProvider(create: (_) => TasksBloc(sl<TasksRepository>()))
+/// (`lib/core/di/inyeccion.dart`), que ya sabe qué implementación usar:
+///   `BlocProvider(create: (_) => TasksBloc(sl<TasksRepository>()))`
 SupabaseClient get supabase => Supabase.instance.client;
 
 extension SesionActual on SupabaseClient {
