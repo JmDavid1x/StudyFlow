@@ -57,7 +57,11 @@ jobs:
     needs: analizar-y-probar
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    # Al fijar permisos se pierden los de por defecto: deploy-pages necesita
+    # leer el artifact del build (actions: read).
     permissions:
+      contents: read
+      actions: read
       pages: write
       id-token: write
     environment:
