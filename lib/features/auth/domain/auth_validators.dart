@@ -10,7 +10,7 @@ abstract final class AuthValidators {
     final at = text.indexOf('@');
     final domain = at < 1 ? '' : text.substring(at + 1);
     if (at < 1 || !domain.contains('.') || domain.endsWith('.')) {
-      return 'Revisa el correo, por ejemplo nombre@u.icesi.edu.co';
+      return 'Revisa el correo, por ejemplo nombre@gmail.com';
     }
     return null;
   }

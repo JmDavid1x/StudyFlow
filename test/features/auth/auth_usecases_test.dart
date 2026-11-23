@@ -75,16 +75,28 @@ void main() {
       );
     });
 
-    test('exige el correo de la universidad elegida', () async {
-      await expectLater(
-        RegistrarUsuario(repositorio)(
-          nombre: 'Ana',
-          correo: 'ana@gmail.com',
-          contrasena: 'clave1234',
-          universidad: _icesi,
-        ),
-        throwsA(isA<AppException>().having((e) => e.mensaje, 'mensaje', contains('u.icesi.edu.co'))),
+    test('acepta un correo personal (Gmail, Hotmail…) con la universidad elegida', () async {
+      when(() => repositorio.registrar(
+            nombre: any(named: 'nombre'),
+            correo: any(named: 'correo'),
+            contrasena: any(named: 'contrasena'),
+            universidadId: any(named: 'universidadId'),
+          )).thenAnswer((_) async => ResultadoRegistro.conSesion);
+
+      final resultado = await RegistrarUsuario(repositorio)(
+        nombre: 'Ana',
+        correo: 'Ana@Gmail.com',
+        contrasena: 'clave1234',
+        universidad: _icesi,
       );
+
+      expect(resultado, ResultadoRegistro.conSesion);
+      verify(() => repositorio.registrar(
+            nombre: 'Ana',
+            correo: 'ana@gmail.com',
+            contrasena: 'clave1234',
+            universidadId: _icesi.id,
+          )).called(1);
     });
   });
 

@@ -102,8 +102,8 @@ class _LoginScreenState extends State<LoginScreen> {
         const AuthHeading(title: 'Hola de nuevo', subtitle: 'Inicia sesión para ver tus entregas.'),
         const SizedBox(height: SfSpacing.lg),
         SfTextField(
-          label: 'Correo institucional',
-          hint: 'nombre@u.icesi.edu.co',
+          label: 'Correo',
+          hint: 'tu@correo.com',
           icon: Icons.mail_outline,
           controller: _email,
           keyboardType: TextInputType.emailAddress,

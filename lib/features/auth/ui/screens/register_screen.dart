@@ -147,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ],
       children: [
-        const AuthHeading(title: 'Crea tu cuenta', subtitle: 'Usa tu correo de la universidad.'),
+        const AuthHeading(title: 'Crea tu cuenta', subtitle: 'Con tu correo de la universidad o el personal.'),
         const SizedBox(height: SfSpacing.lg),
         SfTextField(
           label: 'Nombre',
@@ -162,8 +162,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         const SizedBox(height: SfSpacing.md),
         SfTextField(
-          label: 'Correo institucional',
-          hint: 'nombre@u.icesi.edu.co',
+          label: 'Correo',
+          hint: 'tu@correo.com',
           icon: Icons.mail_outline,
           controller: _email,
           keyboardType: TextInputType.emailAddress,
