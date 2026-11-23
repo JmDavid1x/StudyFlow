@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/tasks/data/tasks_repository_impl.dart';
 import 'package:studyflow/features/tasks/domain/filtros_tareas.dart';
 import 'package:studyflow/features/tasks/domain/textos_actividad.dart';
 import 'package:studyflow/features/tasks/ui/bloc/tasks_bloc.dart';
@@ -23,12 +22,12 @@ class TasksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => TasksBloc(TasksRepositoryImpl(supabase))..add(const TareasPedidas()),
+      create: (_) => sl<TasksBloc>()..add(const TareasPedidas()),
       // Si cambia algo desde otro dispositivo, la lista se actualiza sola.
       child: Builder(
         builder: (context) => RecargarEnVivo(
           tablas: const {'actividades', 'calificaciones'},
-          alCambiar: () => context.read<TasksBloc>().add(const TareasPedidas()),
+          alCambiar: () => context.read<TasksBloc>().add(const CambioEnVivo()),
           child: const _TasksView(),
         ),
       ),
@@ -47,6 +46,8 @@ class _TasksView extends StatelessWidget {
   }
 
   void _newTask(BuildContext context) => _thenReload(context, Navigator.pushNamed(context, AppRoutes.newTask));
+
+  void _newSubject(BuildContext context) => _thenReload(context, Navigator.pushNamed(context, AppRoutes.newSubject));
 
   void _open(BuildContext context, Actividad actividad) => _thenReload(context, openTaskDetail(context, actividad));
 
@@ -112,9 +113,12 @@ class _TasksView extends StatelessWidget {
       case EstadoTareas.listo:
         final ahora = state.ahora ?? DateTime.now();
         final secciones = state.secciones;
+        final alDia = state.vacio == VacioTareas.todoAlDia && state.filtro != FiltroTareas.completadas;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Todo cerrado: se celebra arriba y en "Todas" siguen las completadas.
+            if (alDia) ...[const SizedBox(height: SfSpacing.lg), _allDone(context)],
             for (final seccion in secciones)
               _Section(
                 title: seccion.titulo,
@@ -129,7 +133,7 @@ class _TasksView extends StatelessWidget {
                         : _tile(context, actividad, ahora),
                 ],
               ),
-            if (secciones.isEmpty) ...[const SizedBox(height: SfSpacing.lg), _emptyState(context, state.filtro)],
+            if (secciones.isEmpty && !alDia) ...[const SizedBox(height: SfSpacing.lg), _emptyState(context, state)],
           ],
         );
     }
@@ -149,20 +153,50 @@ class _TasksView extends StatelessWidget {
     );
   }
 
-  Widget _emptyState(BuildContext context, FiltroTareas filtro) {
+  /// Todas las tareas están cerradas.
+  Widget _allDone(BuildContext context) => SfCard(
+    child: SfEmptyState(
+      icon: Icons.celebration_outlined,
+      title: '¡Estás al día!',
+      message: 'Completaste todas tus tareas. Agrega la próxima apenas te la dejen.',
+      actionLabel: 'Agregar tarea',
+      onAction: () => _newTask(context),
+    ),
+  );
+
+  /// Qué decir cuando no hay nada que mostrar con el chip elegido.
+  Widget _emptyState(BuildContext context, TasksState state) {
     return SfCard(
-      child: switch (filtro) {
-        FiltroTareas.completadas => const SfEmptyState(
+      child: switch ((state.vacio, state.filtro)) {
+        (VacioTareas.sinMaterias, _) => SfEmptyState(
+          icon: Icons.school_outlined,
+          title: 'Primero agrega tus materias',
+          message: 'Cada tarea va dentro de una materia. Crea la primera y luego agrega sus entregas.',
+          actionLabel: 'Agregar mi primera materia',
+          onAction: () => _newSubject(context),
+        ),
+        (VacioTareas.sinTareas, _) => SfEmptyState(
+          icon: Icons.edit_calendar_outlined,
+          title: 'Aún no tienes tareas',
+          message: 'Agrega la primera entrega y te recordamos antes de que venza.',
+          actionLabel: 'Agregar mi primera tarea',
+          onAction: () => _newTask(context),
+        ),
+        (_, FiltroTareas.completadas) => const SfEmptyState(
           icon: Icons.task_alt_rounded,
           title: 'Aún no completas tareas',
           message: 'Toca el círculo de una tarea cuando la termines y aparecerá aquí.',
         ),
-        _ => SfEmptyState(
+        // Hay pendientes, pero no con este chip.
+        (_, FiltroTareas.hoy) => const SfEmptyState(
+          icon: Icons.wb_sunny_outlined,
+          title: 'Nada vence hoy',
+          message: 'Mira "Todas" para adelantar lo que viene.',
+        ),
+        _ => const SfEmptyState(
           icon: Icons.event_available_outlined,
-          title: 'No tienes tareas pendientes',
-          message: 'Agrega una entrega y te recordamos antes de que venza.',
-          actionLabel: 'Agregar tarea',
-          onAction: () => _newTask(context),
+          title: 'Nada para esta semana',
+          message: 'Tus próximas entregas están en "Todas".',
         ),
       },
     );

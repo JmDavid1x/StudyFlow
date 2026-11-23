@@ -92,14 +92,23 @@ class TaskDetailState extends Equatable {
 /// Detalle de tarea (18) y de examen (29): carga los bloques y guarda las
 /// acciones. Recibe la actividad que se tocó en la lista.
 class TaskDetailCubit extends Cubit<TaskDetailState> {
-  TaskDetailCubit(TasksRepository repositorio, Actividad actividad, {DateTime Function()? reloj})
-    : _repositorio = repositorio,
-      _completar = CompletarActividad(repositorio),
-      _noEntregada = MarcarNoEntregada(repositorio),
-      _presentar = MarcarPresentado(repositorio),
-      _eliminar = EliminarActividad(repositorio),
-      _reloj = reloj ?? DateTime.now,
-      super(TaskDetailState(actividad: actividad));
+  /// Los casos de uso llegan de GetIt (tasks_di.dart, con la [actividad] como
+  /// parámetro); si no se pasan, se arman con el mismo [repositorio].
+  TaskDetailCubit(
+    TasksRepository repositorio,
+    Actividad actividad, {
+    CompletarActividad? completar,
+    MarcarNoEntregada? noEntregada,
+    MarcarPresentado? presentar,
+    EliminarActividad? eliminar,
+    DateTime Function()? reloj,
+  }) : _repositorio = repositorio,
+       _completar = completar ?? CompletarActividad(repositorio),
+       _noEntregada = noEntregada ?? MarcarNoEntregada(repositorio),
+       _presentar = presentar ?? MarcarPresentado(repositorio),
+       _eliminar = eliminar ?? EliminarActividad(repositorio),
+       _reloj = reloj ?? DateTime.now,
+       super(TaskDetailState(actividad: actividad));
 
   final TasksRepository _repositorio;
   final CompletarActividad _completar;
@@ -136,7 +145,9 @@ class TaskDetailCubit extends Cubit<TaskDetailState> {
     await cargarBloques();
   }
 
-  Future<void> completar() => _guardar(() async {
+  /// Si falla, vuelve a leer la actividad: CompletarActividad ya revirtió,
+  /// pero si no pudo, el detalle debe mostrar lo que quedó en la base.
+  Future<void> completar() => _guardar(recargarSiFalla: true, () async {
     final pendientes = state.bloques.where((b) => b.estado == EstadoBloque.pendiente).toList();
     await _completar(state.actividad);
     final hechaEn = _reloj();
@@ -183,15 +194,16 @@ class TaskDetailCubit extends Cubit<TaskDetailState> {
   });
 
   /// Corre una acción: desactiva los botones mientras tanto y avisa si falla.
-  Future<void> _guardar(Future<void> Function() accion) async {
+  Future<void> _guardar(Future<void> Function() accion, {bool recargarSiFalla = false}) async {
     if (state.ocupado) return;
     emit(state.copyWith(ocupado: true, resultado: ResultadoDetalle.ninguno));
     try {
       await accion();
       emit(state.copyWith(ocupado: false, cambio: true));
     } catch (e) {
-      emit(state.copyWith(ocupado: false));
+      emit(state.copyWith(ocupado: false, cambio: recargarSiFalla ? true : null));
       _avisar(e);
+      if (recargarSiFalla) await recargar();
     }
   }
 

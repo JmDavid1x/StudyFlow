@@ -13,11 +13,13 @@ void main() {
     List<BloqueEstudio> bloques = const [],
     List<Notificacion> notificaciones = const [],
     DateTime? en,
+    Actividad? proximoExamen,
   }) => calcularResumenInicio(
     actividades: actividades,
     bloques: bloques,
     notificaciones: notificaciones,
     ahora: en ?? ahora,
+    proximoExamen: proximoExamen,
   );
 
   group('tarjetas', () {
@@ -49,6 +51,31 @@ void main() {
         ],
       );
       expect(r.proximoExamen?.id, 'jueves');
+    });
+
+    test('próximo examen a más de 8 días: llega aparte y sí se muestra', () {
+      final lejano = actividad('lejos', tipo: TipoActividad.examen, fecha: DateTime(2026, 12, 3, 8));
+      final r = resumen(
+        actividades: [actividad('t1', fecha: DateTime(2026, 11, 12))],
+        proximoExamen: lejano,
+      );
+      expect(r.proximoExamen?.id, 'lejos');
+    });
+
+    test('si hay uno más cercano dentro del rango, gana ese', () {
+      final cerca = actividad('cerca', tipo: TipoActividad.examen, fecha: DateTime(2026, 11, 13, 8));
+      final lejano = actividad('lejos', tipo: TipoActividad.examen, fecha: DateTime(2026, 12, 3, 8));
+      expect(resumen(actividades: [cerca], proximoExamen: lejano).proximoExamen?.id, 'cerca');
+    });
+
+    test('el que llega aparte no cuenta si ya se presentó', () {
+      final presentado = actividad(
+        'p',
+        tipo: TipoActividad.examen,
+        fecha: DateTime(2026, 12, 3, 8),
+        estado: EstadoActividad.presentado,
+      );
+      expect(resumen(proximoExamen: presentado).proximoExamen, isNull);
     });
 
     test('sin exámenes pendientes no hay próximo examen', () {
@@ -170,6 +197,25 @@ void main() {
     });
   });
 
+  group('vacioDeInicio', () {
+    test('sin actividades: según haya materias o no', () {
+      expect(vacioDeInicio(resumen(), hayMaterias: false), VacioInicio.sinMaterias);
+      expect(vacioDeInicio(resumen(), hayMaterias: true), VacioInicio.sinEntregas);
+    });
+
+    test('todo lo de la semana cerrado y nada viene = al día', () {
+      final r = resumen(
+        actividades: [actividad('t1', fecha: DateTime(2026, 11, 10), estado: EstadoActividad.completada)],
+      );
+      expect(vacioDeInicio(r, hayMaterias: true), VacioInicio.todoAlDia);
+    });
+
+    test('con algo pendiente no hay estado vacío', () {
+      final r = resumen(actividades: [actividad('t1', fecha: DateTime(2026, 11, 12))]);
+      expect(vacioDeInicio(r, hayMaterias: true), isNull);
+    });
+  });
+
   group('RangoInicio', () {
     test('un miércoles pide del lunes al miércoles siguiente', () {
       final rango = RangoInicio(ahora);
@@ -181,6 +227,30 @@ void main() {
       final rango = RangoInicio(DateTime(2026, 11, 16, 9));
       expect(rango.desde, DateTime(2026, 11, 15));
       expect(rango.hasta, DateTime(2026, 11, 24));
+    });
+  });
+
+  group('vacioDeInicio', () {
+    test('sin actividades: depende de si hay materias', () {
+      expect(vacioDeInicio(resumen(), hayMaterias: false), VacioInicio.sinMaterias);
+      expect(vacioDeInicio(resumen(), hayMaterias: true), VacioInicio.sinEntregas);
+    });
+
+    test('todo lo de la semana cerrado y nada próximo: al día', () {
+      final r = resumen(
+        actividades: [actividad('c', fecha: DateTime(2026, 11, 10, 8), estado: EstadoActividad.completada)],
+      );
+      expect(vacioDeInicio(r, hayMaterias: true), VacioInicio.todoAlDia);
+    });
+
+    test('si viene algo en los próximos días no está al día', () {
+      final r = resumen(
+        actividades: [
+          actividad('c', fecha: DateTime(2026, 11, 10, 8), estado: EstadoActividad.completada),
+          actividad('m', fecha: DateTime(2026, 11, 13, 8)),
+        ],
+      );
+      expect(vacioDeInicio(r, hayMaterias: true), isNull);
     });
   });
 }

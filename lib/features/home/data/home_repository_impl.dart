@@ -40,6 +40,25 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
+  Future<Actividad?> proximoExamen(DateTime desde) async {
+    try {
+      final fila = await _db
+          .from('actividades')
+          .select(Actividad.selectPeriodoActivo)
+          .eq('componentes_nota.materias.periodos.activo', true)
+          .eq('tipo', TipoActividad.examen.db)
+          .eq('estado', EstadoActividad.pendiente.db)
+          .gte('fecha_limite', _utc(desde))
+          .order('fecha_limite')
+          .limit(1)
+          .maybeSingle();
+      return fila == null ? null : Actividad.fromMap(fila);
+    } catch (e) {
+      throw AppException(mensajeDeError(e));
+    }
+  }
+
+  @override
   Future<List<BloqueEstudio>> bloquesEntre(DateTime desde, DateTime hasta) async {
     try {
       final filas = await _db

@@ -38,7 +38,8 @@ class ResumenInicio {
   /// Tareas y proyectos (no exámenes) con fecha de lunes a domingo.
   final int entregasSemana;
 
-  /// El examen pendiente más cercano que todavía no pasa (nulo si no hay).
+  /// El examen pendiente más cercano que todavía no pasa, aunque sea dentro
+  /// de un mes (nulo si no hay).
   final Actividad? proximoExamen;
 
   /// Σ (fin − inicio) de los bloques pendientes de la semana.
@@ -65,15 +66,43 @@ class ResumenInicio {
 
   /// Figma 11: todavía no hay nada que entregar.
   bool get sinActividades => totalSemana == 0 && prioridadesHoy.isEmpty && proximas.isEmpty;
+
+  /// Hubo entregas esta semana, todas cerradas, y no viene nada en los próximos días.
+  bool get todoAlDia =>
+      totalSemana > 0 && completadasSemana == totalSemana && prioridadesHoy.isEmpty && proximas.isEmpty;
+}
+
+/// Qué estado vacío muestra Inicio. Nulo si hay algo pendiente.
+enum VacioInicio {
+  /// Sin materias en el periodo: primero hay que crear una.
+  sinMaterias,
+
+  /// Hay materias, pero nada que entregar estos días.
+  sinEntregas,
+
+  /// Todo lo de la semana está hecho.
+  todoAlDia,
+}
+
+/// [hayMaterias] solo importa si no hay actividades.
+VacioInicio? vacioDeInicio(ResumenInicio resumen, {required bool hayMaterias}) {
+  if (resumen.sinActividades) return hayMaterias ? VacioInicio.sinEntregas : VacioInicio.sinMaterias;
+  if (resumen.todoAlDia) return VacioInicio.todoAlDia;
+  return null;
 }
 
 /// Calcula Inicio a partir de lo que trae el repositorio. [ahora] llega por
 /// parámetro para probarlo con fechas fijas.
+///
+/// [proximoExamen] es el que trae `HomeRepository.proximoExamen` sin límite
+/// de fecha; [actividades] solo cubre [RangoInicio], así que un examen a más
+/// de 8 días únicamente llega por ahí.
 ResumenInicio calcularResumenInicio({
   required List<Actividad> actividades,
   required List<BloqueEstudio> bloques,
   required List<Notificacion> notificaciones,
   required DateTime ahora,
+  Actividad? proximoExamen,
 }) {
   final lunes = inicioDeSemana(ahora);
   final finSemana = finDeSemana(ahora);
@@ -85,10 +114,12 @@ ResumenInicio calcularResumenInicio({
   final deLaSemana = actividades.where((a) => estaEntre(a.fechaLimite, lunes, finSemana)).toList();
   final pendientes = actividades.where((a) => !a.estado.estaCerrada).toList();
 
+  // Por si el del rango es más reciente (se acaba de crear o presentar).
   final examenes =
-      pendientes
-          .where((a) => a.esExamen && a.estado == EstadoActividad.pendiente && !a.fechaLimite.isBefore(ahora))
-          .toList()
+      {
+          ...pendientes,
+          ?proximoExamen,
+        }.where((a) => a.esExamen && a.estado == EstadoActividad.pendiente && !a.fechaLimite.isBefore(ahora)).toList()
         ..sort((a, b) => a.fechaLimite.compareTo(b.fechaLimite));
 
   final horas = bloques

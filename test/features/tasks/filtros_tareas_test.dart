@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/features/tasks/domain/filtros_tareas.dart';
+import 'package:studyflow/features/tasks/ui/bloc/tasks_bloc.dart';
 
 import 'fixtures.dart';
 
@@ -94,5 +95,91 @@ void main() {
   test('sin actividades está vacía', () {
     expect(agruparTareas(const [], ahora).estaVacia, isTrue);
     expect(agruparTareas(todas, ahora).estaVacia, isFalse);
+  });
+
+  group('chips (las secciones que se ven)', () {
+    List<String> titulos(FiltroTareas filtro) => [
+      for (final seccion in TasksState(grupos: agruparTareas(todas, ahora), filtro: filtro).secciones) seccion.titulo,
+    ];
+
+    test('Todas muestra las cinco secciones en orden', () {
+      expect(titulos(FiltroTareas.todas), ['Vencidas', 'Hoy', 'Esta semana', 'Más adelante', 'Completadas']);
+    });
+
+    test('Hoy incluye las vencidas (primero se decide qué pasó con ellas)', () {
+      expect(titulos(FiltroTareas.hoy), ['Vencidas', 'Hoy']);
+    });
+
+    test('Esta semana incluye lo de hoy y no lo de más adelante', () {
+      expect(titulos(FiltroTareas.semana), ['Hoy', 'Esta semana']);
+    });
+
+    test('Completadas solo muestra las cerradas', () {
+      expect(titulos(FiltroTareas.completadas), ['Completadas']);
+      final cerradas = TasksState(
+        grupos: agruparTareas(todas, ahora),
+        filtro: FiltroTareas.completadas,
+      ).secciones.single.actividades;
+      expect(cerradas.every((a) => a.estado.estaCerrada), isTrue);
+    });
+
+    test('las secciones vacías no se muestran', () {
+      final soloJueves = TasksState(grupos: agruparTareas([jueves], ahora), filtro: FiltroTareas.todas);
+      expect([for (final x in soloJueves.secciones) x.titulo], ['Esta semana']);
+    });
+  });
+
+  group('vacioDeTareas', () {
+    test('sin actividades ni materias pide crear la primera materia', () {
+      expect(vacioDeTareas(actividades: const [], hayMaterias: false), VacioTareas.sinMaterias);
+    });
+
+    test('con materias pero sin actividades pide crear la primera tarea', () {
+      expect(vacioDeTareas(actividades: const [], hayMaterias: true), VacioTareas.sinTareas);
+    });
+
+    test('todas cerradas = al día', () {
+      expect(
+        vacioDeTareas(actividades: [completada, noEntregada, examenPresentado], hayMaterias: true),
+        VacioTareas.todoAlDia,
+      );
+    });
+
+    test('con algo pendiente no hay estado vacío', () {
+      expect(vacioDeTareas(actividades: todas, hayMaterias: true), isNull);
+    });
+  });
+
+  group('vacioDeTareas', () {
+    test('sin actividades ni materias: primero las materias', () {
+      expect(vacioDeTareas(actividades: const [], hayMaterias: false), VacioTareas.sinMaterias);
+    });
+
+    test('con materias pero sin actividades: crear la primera tarea', () {
+      expect(vacioDeTareas(actividades: const [], hayMaterias: true), VacioTareas.sinTareas);
+    });
+
+    test('todas cerradas: al día', () {
+      expect(
+        vacioDeTareas(actividades: [completada, noEntregada, examenPresentado], hayMaterias: true),
+        VacioTareas.todoAlDia,
+      );
+    });
+
+    test('con algo pendiente no hay estado vacío', () {
+      expect(vacioDeTareas(actividades: todas, hayMaterias: true), isNull);
+    });
+  });
+
+  test('una vencida no cuenta como al día aunque el resto esté cerrado', () {
+    expect(vacioDeTareas(actividades: [completada, vencidaAyer], hayMaterias: true), isNull);
+  });
+
+  test('vencidas y Hoy separan por la hora de ahora', () {
+    final grupos = agruparTareas(todas, ahora);
+    expect(ids(grupos.vencidas), containsAll(['vencida-ayer', 'vencida-hoy']));
+    expect(ids(grupos.hoy), ['hoy-noche']);
+    expect(ids(grupos.semana), ['examen-jueves', 'jueves', 'domingo']);
+    expect(ids(grupos.masAdelante), ['lunes-sig']);
   });
 }
