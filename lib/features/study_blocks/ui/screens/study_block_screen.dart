@@ -3,17 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
 import 'package:studyflow/features/calendar/ui/widgets/formato.dart';
-import 'package:studyflow/features/study_blocks/data/study_blocks_repository_impl.dart';
 import 'package:studyflow/features/study_blocks/ui/bloc/study_block_cubit.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/block_completed_sheet.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/block_pending_sheet.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/discard_block_sheet.dart';
 
 /// Bloque de estudio (Figma 27). Recibe un [BloqueEstudio] como argumento
-/// (desde el calendario) y crea su propio StudyBlockCubit. Muestra qué tarea
+/// (desde el calendario) y pide su StudyBlockCubit a GetIt pasándole ese
+/// bloque: `sl<StudyBlockCubit>(param1: bloque)`. Muestra qué tarea
 /// prepara, cuándo es, cuánto dura, quién lo creó y el aviso.
 class StudyBlockScreen extends StatelessWidget {
   const StudyBlockScreen({super.key});
@@ -23,8 +23,7 @@ class StudyBlockScreen extends StatelessWidget {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is! BloqueEstudio) return const _SinBloque();
     return BlocProvider(
-      create: (_) =>
-          StudyBlockCubit(StudyBlocksRepositoryImpl(supabase), args)..cargar(),
+      create: (_) => sl<StudyBlockCubit>(param1: args)..cargar(),
       child: const _StudyBlockView(),
     );
   }

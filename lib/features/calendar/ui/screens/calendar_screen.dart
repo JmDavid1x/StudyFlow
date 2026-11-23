@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/calendar/data/calendar_repository_impl.dart';
 import 'package:studyflow/features/calendar/domain/agenda_del_dia.dart';
 import 'package:studyflow/features/calendar/ui/bloc/calendar_bloc.dart';
 import 'package:studyflow/features/calendar/ui/bloc/calendar_event.dart';
@@ -15,22 +14,19 @@ import 'package:studyflow/features/calendar/ui/widgets/agenda_item_tile.dart';
 import 'package:studyflow/features/calendar/ui/widgets/calendar_labels.dart';
 import 'package:studyflow/features/calendar/ui/widgets/month_header.dart';
 import 'package:studyflow/features/calendar/ui/widgets/week_strip.dart';
-import 'package:studyflow/features/study_blocks/data/study_blocks_repository_impl.dart';
 import 'package:studyflow/features/study_blocks/ui/widgets/block_completed_sheet.dart';
 
 /// Pestaña Calendario (Figma 20). MainShell la crea con `const CalendarScreen()`,
-/// así que la pantalla crea su propio CalendarBloc con los repositorios de
-/// Supabase. La barra inferior la pone MainShell.
+/// así que la pantalla pide su propio CalendarBloc a GetIt
+/// (`sl<CalendarBloc>()`, registrado en calendar_di.dart). La barra inferior
+/// la pone MainShell.
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => CalendarBloc(
-        CalendarRepositoryImpl(supabase),
-        StudyBlocksRepositoryImpl(supabase),
-      )..add(const CalendarioIniciado()),
+      create: (_) => sl<CalendarBloc>()..add(const CalendarioIniciado()),
       child: const _CalendarView(),
     );
   }

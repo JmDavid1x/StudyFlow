@@ -15,8 +15,15 @@ import 'package:studyflow/features/study_blocks/domain/usecases/completar_bloque
 /// Elegir otro día de la misma semana no vuelve a pedir nada: la agenda se
 /// arma con lo que ya está en el estado.
 class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
-  CalendarBloc(this._calendario, this._bloques, {DateTime Function()? ahora})
-    : super(CalendarState(dia: _soloDia((ahora ?? DateTime.now)()))) {
+  /// GetIt le entrega el repositorio y el caso de uso (calendar_di.dart).
+  /// [ahora] solo se usa en los tests, para fijar la fecha de "hoy".
+  CalendarBloc(
+    this._calendario,
+    StudyBlocksRepository bloques, {
+    CompletarBloque? completar,
+    DateTime Function()? ahora,
+  }) : _completar = completar ?? CompletarBloque(bloques),
+       super(CalendarState(dia: _soloDia((ahora ?? DateTime.now)()))) {
     on<CalendarioIniciado>((_, emit) => _cargar(emit, state.dia));
     on<CalendarioRecargado>((_, emit) => _cargar(emit, state.dia));
     on<DiaElegido>(_alElegirDia);
@@ -34,7 +41,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
   }
 
   final CalendarRepository _calendario;
-  final StudyBlocksRepository _bloques;
+  final CompletarBloque _completar;
 
   /// Los horarios no cambian de una semana a otra: se piden una sola vez.
   List<HorarioMateria>? _horarios;
@@ -91,7 +98,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     Emitter<CalendarState> emit,
   ) async {
     try {
-      await CompletarBloque(_bloques)(event.bloque);
+      await _completar(event.bloque);
       emit(state.copyWith(completado: event.bloque));
       // Se recarga para ver el bloque marcado y la actividad en progreso.
       await _cargar(emit, state.dia);

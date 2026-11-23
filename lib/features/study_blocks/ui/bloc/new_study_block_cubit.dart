@@ -64,11 +64,21 @@ class NewStudyBlockState extends Equatable {
 /// abiertas y guarda el bloque solo si no se cruza con clases ni con otros
 /// bloques pendientes.
 class NewStudyBlockCubit extends Cubit<NewStudyBlockState> {
-  NewStudyBlockCubit(this._bloques, this._calendario)
-    : super(const NewStudyBlockState());
+  /// GetIt le entrega los repositorios y los casos de uso
+  /// (study_blocks_di.dart). Si no llegan, se arman con los repositorios.
+  NewStudyBlockCubit(
+    StudyBlocksRepository bloques,
+    CalendarRepository calendario, {
+    CrearBloque? crear,
+    ReprogramarBloque? reprogramar,
+  }) : _bloques = bloques,
+       _crear = crear ?? CrearBloque(bloques, calendario),
+       _reprogramar = reprogramar ?? ReprogramarBloque(bloques, calendario),
+       super(const NewStudyBlockState());
 
   final StudyBlocksRepository _bloques;
-  final CalendarRepository _calendario;
+  final CrearBloque _crear;
+  final ReprogramarBloque _reprogramar;
 
   Future<void> cargar() async {
     emit(const NewStudyBlockState());
@@ -103,13 +113,9 @@ class NewStudyBlockCubit extends Cubit<NewStudyBlockState> {
     final fin = inicio.add(Duration(minutes: minutos));
     try {
       if (reprogramar != null) {
-        await ReprogramarBloque(_bloques, _calendario)(
-          reprogramar,
-          inicio: inicio,
-          fin: fin,
-        );
+        await _reprogramar(reprogramar, inicio: inicio, fin: fin);
       } else {
-        await CrearBloque(_bloques, _calendario)(
+        await _crear(
           actividadId: actividadId!,
           inicio: inicio,
           fin: fin,
