@@ -67,8 +67,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: SfSpacing.lg),
         SfTextField(
-          label: 'Correo institucional',
-          hint: 'nombre@u.icesi.edu.co',
+          label: 'Correo',
+          hint: 'tu@correo.com',
           icon: Icons.mail_outline,
           controller: _email,
           keyboardType: TextInputType.emailAddress,
