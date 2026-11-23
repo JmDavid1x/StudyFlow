@@ -134,7 +134,10 @@ void main() {
         () => repositorio.crearActividad(any()),
       ).thenAnswer((i) async => i.positionalArguments.first as Actividad);
       when(
-        () => repositorio.editarActividad(any()),
+        () => repositorio.editarActividad(
+          any(),
+          cambiarEstado: any(named: 'cambiarEstado'),
+        ),
       ).thenAnswer((i) async => i.positionalArguments.first as Actividad);
     });
 
@@ -146,6 +149,33 @@ void main() {
       verify(() => repositorio.crearActividad(any())).called(1);
     });
 
+    test('editar no reenvía el estado si el tipo no cambió', () async {
+      final enProgreso = actividad(
+        'a',
+        fecha: fecha,
+        estado: EstadoActividad.enProgreso,
+      ).copyWith(porcentaje: 12.5);
+      final editada = await GuardarActividad(repositorio).editar(enProgreso);
+      expect(editada.porcentaje, 12.5);
+      verify(
+        () => repositorio.editarActividad(any(), cambiarEstado: false),
+      ).called(1);
+    });
+
+    test('editar sí manda el estado si pasó de tarea a examen', () async {
+      final ahoraExamen = actividad(
+        'a',
+        fecha: fecha,
+        tipo: TipoActividad.examen,
+        estado: EstadoActividad.enProgreso,
+      );
+      final editada = await GuardarActividad(repositorio).editar(ahoraExamen);
+      expect(editada.estado, EstadoActividad.pendiente);
+      verify(
+        () => repositorio.editarActividad(any(), cambiarEstado: true),
+      ).called(1);
+    });
+
     test('si no pasa las reglas no llama al repositorio', () {
       expect(
         () => GuardarActividad(
@@ -153,7 +183,12 @@ void main() {
         ).editar(actividad('a', fecha: fecha).copyWith(titulo: '')),
         throwsA(isA<AppException>()),
       );
-      verifyNever(() => repositorio.editarActividad(any()));
+      verifyNever(
+        () => repositorio.editarActividad(
+          any(),
+          cambiarEstado: any(named: 'cambiarEstado'),
+        ),
+      );
     });
   });
 
@@ -183,6 +218,37 @@ void main() {
         (actividadId: 'a1', componenteId: 'c1', porcentaje: 50),
       ];
       expect(porcentajeRestante(proyecto, pasado), 0);
+    });
+
+    test('con decimales no redondea: 40 - 12,5 deja 27,5', () {
+      const conDecimal = <PorcentajeAsignado>[
+        (actividadId: 'a1', componenteId: 'c1', porcentaje: 12.5),
+      ];
+      expect(porcentajeRestante(proyecto, conDecimal), 27.5);
+    });
+  });
+
+  group('porcentaje escrito', () {
+    test('acepta coma o punto y hasta dos decimales', () {
+      expect(leerPorcentaje('12,5'), 12.5);
+      expect(leerPorcentaje('12.5'), 12.5);
+      expect(leerPorcentaje(' 15 % '), 15);
+      expect(leerPorcentaje('33,25'), 33.25);
+    });
+
+    test('lo que no es un porcentaje da null', () {
+      expect(leerPorcentaje(''), isNull);
+      expect(leerPorcentaje('abc'), isNull);
+      expect(leerPorcentaje('12,555'), isNull);
+      expect(leerPorcentaje('-5'), isNull);
+    });
+
+    test('se muestra con coma y sin redondear a entero', () {
+      expect(textoPorcentaje(12.5), '12,5');
+      expect(textoPorcentaje(15), '15');
+      expect(textoPorcentaje(33.25), '33,25');
+      expect(textoPorcentaje(0), '0');
+      expect(textoPorcentaje(100), '100');
     });
   });
 }
