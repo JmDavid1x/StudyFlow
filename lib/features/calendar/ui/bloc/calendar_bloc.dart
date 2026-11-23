@@ -25,7 +25,12 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
   }) : _completar = completar ?? CompletarBloque(bloques),
        super(CalendarState(dia: _soloDia((ahora ?? DateTime.now)()))) {
     on<CalendarioIniciado>((_, emit) => _cargar(emit, state.dia));
-    on<CalendarioRecargado>((_, emit) => _cargar(emit, state.dia));
+    // Las recargas (al volver o en vivo) van una detrás de otra: si llegan
+    // varios cambios seguidos, ninguna recarga pisa a la siguiente.
+    on<CalendarioRecargado>(
+      (_, emit) => _cargar(emit, state.dia),
+      transformer: (eventos, mapper) => eventos.asyncExpand(mapper),
+    );
     on<DiaElegido>(_alElegirDia);
     on<SemanaCambiada>(
       (event, emit) => _cargar(

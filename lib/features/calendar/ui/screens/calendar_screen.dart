@@ -5,6 +5,7 @@ import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
 import 'package:studyflow/features/calendar/domain/agenda_del_dia.dart';
 import 'package:studyflow/features/calendar/ui/bloc/calendar_bloc.dart';
 import 'package:studyflow/features/calendar/ui/bloc/calendar_event.dart';
@@ -27,7 +28,17 @@ class CalendarScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<CalendarBloc>()..add(const CalendarioIniciado()),
-      child: const _CalendarView(),
+      // En vivo: si cambia una tarea o un bloque (en otro dispositivo o desde
+      // otra pantalla), la semana se recarga sola. El Builder da un context
+      // que ya está debajo del BlocProvider.
+      child: Builder(
+        builder: (context) => RecargarEnVivo(
+          tablas: const {'actividades', 'bloques_estudio'},
+          alCambiar: () =>
+              context.read<CalendarBloc>().add(const CalendarioRecargado()),
+          child: const _CalendarView(),
+        ),
+      ),
     );
   }
 }
