@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
+import 'package:studyflow/core/supabase/supabase_x.dart';
+import 'package:studyflow/features/subjects/data/subjects_repository_impl.dart';
 import 'package:studyflow/features/subjects/ui/bloc/setup_subjects_cubit.dart';
 import 'package:studyflow/features/subjects/ui/widgets/dashed_add_button.dart';
 import 'package:studyflow/features/subjects/ui/widgets/subject_setup_tile.dart';
@@ -19,7 +20,7 @@ class SetupSubjectsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) =>
-          sl<SetupSubjectsCubit>()..cargar(),
+          SetupSubjectsCubit(SubjectsRepositoryImpl(supabase))..cargar(),
       child: const _SetupSubjectsView(),
     );
   }

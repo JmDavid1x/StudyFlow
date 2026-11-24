@@ -15,12 +15,6 @@ import 'package:studyflow/features/profile/ui/bloc/notification_settings_cubit.d
 import 'package:studyflow/features/profile/ui/bloc/profile_cubit.dart';
 import 'package:studyflow/features/study_blocks/domain/study_blocks_repository.dart';
 import 'package:studyflow/features/subjects/domain/subjects_repository.dart';
-import 'package:studyflow/features/subjects/ui/bloc/new_subject_cubit.dart';
-import 'package:studyflow/features/subjects/ui/bloc/register_grade_cubit.dart';
-import 'package:studyflow/features/subjects/ui/bloc/setup_reminders_cubit.dart';
-import 'package:studyflow/features/subjects/ui/bloc/setup_subjects_cubit.dart';
-import 'package:studyflow/features/subjects/ui/bloc/subject_detail_cubit.dart';
-import 'package:studyflow/features/subjects/ui/bloc/subjects_cubit.dart';
 import 'package:studyflow/features/subscription/domain/subscription_repository.dart';
 import 'package:studyflow/features/subscription/ui/bloc/payment_cubit.dart';
 import 'package:studyflow/features/subscription/ui/bloc/plus_cubit.dart';
@@ -62,21 +56,15 @@ void main() {
     await b.close();
   });
 
-  test('GetIt arma los Blocs y Cubits de Materias, Asistente, Perfil y Plus', () async {
+  test('GetIt arma los Blocs y Cubits de Asistente, Perfil y Plus', () async {
     final creados = <dynamic>[
-      sl<SubjectsCubit>(),
-      sl<SetupSubjectsCubit>(),
-      sl<SetupRemindersCubit>(),
-      sl<NewSubjectCubit>(),
-      sl<SubjectDetailCubit>(),
-      sl<RegisterGradeCubit>(),
       sl<AssistantBloc>(),
       sl<ProfileCubit>(),
       sl<NotificationSettingsCubit>(),
       sl<PlusCubit>(),
       sl<PaymentCubit>(param1: Periodicidad.semestral),
     ];
-    expect(creados, hasLength(11));
+    expect(creados, hasLength(5));
     expect((creados.last as PaymentCubit).state.periodicidad, Periodicidad.semestral);
     for (final c in creados) {
       await c.close();
