@@ -76,6 +76,27 @@ void main() {
     );
   });
 
+  testWidgets('el valor en la nota acepta decimales (12,5)', (tester) async {
+    await abrir(tester);
+    await tester.tap(find.text('Aplicaciones Móviles'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('40 %'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextField, '0'), '12,5');
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Proyecto vale 40 %: esta tarea usa 12,5 % y quedan 12,5 % sin asignar.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.enterText(find.widgetWithText(TextField, '12,5'), '30');
+    await tester.pumpAndSettle();
+    expect(find.text('Escribe de 0 a 25 (ej.: 12,5)'), findsOneWidget);
+  });
+
   testWidgets('no deja guardar sin los datos obligatorios', (tester) async {
     await abrir(tester);
     await tester.ensureVisible(find.text('Guardar tarea'));

@@ -62,11 +62,17 @@ class TaskFormRepositoryImpl implements TaskFormRepository {
   }
 
   @override
-  Future<Actividad> editarActividad(Actividad actividad) async {
+  Future<Actividad> editarActividad(
+    Actividad actividad, {
+    required bool cambiarEstado,
+  }) async {
+    // toInsert no trae completada_en; el estado solo va si cambió de tipo.
+    final cambios = actividad.toInsert();
+    if (!cambiarEstado) cambios.remove('estado');
     try {
       final fila = await _db
           .from('actividades')
-          .update(actividad.toInsert())
+          .update(cambios)
           .eq('id', actividad.id)
           .select(Actividad.select)
           .single();

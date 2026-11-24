@@ -48,8 +48,15 @@ class GuardarActividad {
   Future<Actividad> crear(Actividad actividad) =>
       _repositorio.crearActividad(preparar(actividad, esNueva: true));
 
-  Future<Actividad> editar(Actividad actividad) =>
-      _repositorio.editarActividad(preparar(actividad, esNueva: false));
+  /// Al editar no se reenvía el estado: solo si [preparar] tuvo que cambiarlo
+  /// (pasó de examen a tarea o al revés).
+  Future<Actividad> editar(Actividad actividad) {
+    final lista = preparar(actividad, esNueva: false);
+    return _repositorio.editarActividad(
+      lista,
+      cambiarEstado: lista.estado != actividad.estado,
+    );
+  }
 
   static bool _esDeExamen(EstadoActividad estado) =>
       estado == EstadoActividad.pendiente ||

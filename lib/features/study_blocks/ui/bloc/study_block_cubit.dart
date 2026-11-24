@@ -50,10 +50,21 @@ class StudyBlockState extends Equatable {
 /// Maneja Bloque de estudio (Figma 27): carga la tarea vinculada y completa
 /// o descarta el bloque en Supabase.
 class StudyBlockCubit extends Cubit<StudyBlockState> {
-  StudyBlockCubit(this._repositorio, BloqueEstudio bloque)
-    : super(StudyBlockState(bloque: bloque));
+  /// GetIt lo crea con `sl<StudyBlockCubit>(param1: bloque)`: el bloque llega
+  /// de la ruta (registerFactoryParam en study_blocks_di.dart).
+  StudyBlockCubit(
+    StudyBlocksRepository repositorio,
+    BloqueEstudio bloque, {
+    CompletarBloque? completar,
+    DescartarBloque? descartar,
+  }) : _repositorio = repositorio,
+       _completar = completar ?? CompletarBloque(repositorio),
+       _descartar = descartar ?? DescartarBloque(repositorio),
+       super(StudyBlockState(bloque: bloque));
 
   final StudyBlocksRepository _repositorio;
+  final CompletarBloque _completar;
+  final DescartarBloque _descartar;
 
   Future<void> cargar() async {
     try {
@@ -68,7 +79,7 @@ class StudyBlockCubit extends Cubit<StudyBlockState> {
     if (state.procesando) return;
     emit(state.copyWith(procesando: true));
     try {
-      await CompletarBloque(_repositorio)(state.bloque);
+      await _completar(state.bloque);
       emit(
         state.copyWith(
           procesando: false,
@@ -85,7 +96,7 @@ class StudyBlockCubit extends Cubit<StudyBlockState> {
     if (state.procesando) return;
     emit(state.copyWith(procesando: true));
     try {
-      await DescartarBloque(_repositorio)(state.bloque);
+      await _descartar(state.bloque);
       emit(
         state.copyWith(
           procesando: false,
