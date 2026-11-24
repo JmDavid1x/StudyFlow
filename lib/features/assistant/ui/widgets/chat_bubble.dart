@@ -10,11 +10,15 @@ class ChatBubble extends StatelessWidget {
     super.key,
     required this.text,
     required this.isUser,
+    this.body,
     this.child,
   });
 
   final String text;
   final bool isUser;
+
+  /// Contenido con formato en lugar de [text] (respuestas del asistente).
+  final Widget? body;
   final Widget? child;
 
   @override
@@ -36,7 +40,7 @@ class ChatBubble extends StatelessWidget {
           bottomRight: isUser ? tail : corner,
         ),
       ),
-      child: Text(text, style: SfTypography.body),
+      child: body ?? Text(text, style: SfTypography.body),
     );
 
     return Padding(

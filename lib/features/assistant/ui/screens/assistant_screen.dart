@@ -6,9 +6,11 @@ import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/assistant/ui/bloc/assistant_bloc.dart';
 import 'package:studyflow/features/assistant/ui/widgets/chat_bubble.dart';
+import 'package:studyflow/features/assistant/ui/widgets/formatted_reply.dart';
 import 'package:studyflow/features/assistant/ui/widgets/offline_notice.dart';
 import 'package:studyflow/features/assistant/ui/widgets/plan_added_sheet.dart';
 import 'package:studyflow/features/assistant/ui/widgets/suggested_order_card.dart';
+import 'package:studyflow/features/assistant/ui/widgets/thinking_bubble.dart';
 
 /// Preguntas sugeridas encima del campo de escribir.
 const _sugerencias = <String>[
@@ -69,7 +71,8 @@ class _AssistantScreenState extends State<AssistantScreen> {
         // Mensaje nuevo: baja hasta el final del chat.
         BlocListener<AssistantBloc, AssistantState>(
           listenWhen: (antes, ahora) =>
-              antes.mensajes.length != ahora.mensajes.length,
+              antes.mensajes.length != ahora.mensajes.length ||
+              antes.enviando != ahora.enviando,
           listener: (context, state) => _scrollToEnd(),
         ),
         // Error de una acción: SnackBar.
@@ -103,16 +106,6 @@ class _AssistantScreenState extends State<AssistantScreen> {
               ),
             ),
             Expanded(child: _buildBody(context, state)),
-            if (state.enviando)
-              Padding(
-                padding: const EdgeInsets.only(bottom: SfSpacing.xs),
-                child: Text(
-                  'El asistente está revisando tus pendientes…',
-                  style: SfTypography.caption.copyWith(
-                    color: SfColors.textSecondary,
-                  ),
-                ),
-              ),
             _SuggestionBar(
               onSelected:
                   state.estado == EstadoAsistente.listo && !state.enviando
@@ -148,7 +141,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
           ),
         );
       case EstadoAsistente.listo:
-        if (state.mensajes.isEmpty) {
+        if (state.mensajes.isEmpty && !state.enviando) {
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: SfSpacing.screen),
             child: SfEmptyState(
@@ -169,12 +162,21 @@ class _AssistantScreenState extends State<AssistantScreen> {
             SfSpacing.screen,
             SfSpacing.md,
           ),
-          itemCount: state.mensajes.length,
-          itemBuilder: (context, index) =>
-              _buildMessage(context, state, state.mensajes[index]),
+          itemCount: state.mensajes.length + _extras(state).length,
+          itemBuilder: (context, index) => index < state.mensajes.length
+              ? _buildMessage(context, state, state.mensajes[index])
+              : _extras(state)[index - state.mensajes.length],
         );
     }
   }
+
+  /// Lo que va al final del chat mientras el asistente piensa: la pregunta
+  /// recién enviada (aún sin guardar) y la burbuja "Pensando…".
+  List<Widget> _extras(AssistantState state) => [
+    if (state.enviando && state.preguntaPendiente != null)
+      ChatBubble(text: state.preguntaPendiente!, isUser: true),
+    if (state.enviando) const ThinkingBubble(),
+  ];
 
   Widget _buildMessage(
     BuildContext context,
@@ -183,16 +185,21 @@ class _AssistantScreenState extends State<AssistantScreen> {
   ) {
     final orden = state.orden;
     final conOrden = orden != null && mensaje.id == state.respuestaId;
+    final esUsuario = mensaje.rol == RolMensaje.usuario;
     if (!conOrden) {
       return ChatBubble(
         text: mensaje.contenido,
-        isUser: mensaje.rol == RolMensaje.usuario,
+        isUser: esUsuario,
+        body: esUsuario ? null : FormattedReply(texto: mensaje.contenido),
       );
     }
 
     final bloc = context.read<AssistantBloc>();
-    // La lista ya va en la tarjeta: en la burbuja solo la primera línea.
-    final texto = mensaje.contenido.split('\n').first;
+    // En el respaldo la lista ya va en la tarjeta: en la burbuja solo la
+    // primera línea. La respuesta de la IA se muestra completa, con formato.
+    final texto = mensaje.usadoRespaldo
+        ? mensaje.contenido.split('\n').first
+        : mensaje.contenido;
     final Widget tarjeta = mensaje.usadoRespaldo
         ? OfflineNotice(
             orden: orden,
@@ -205,7 +212,12 @@ class _AssistantScreenState extends State<AssistantScreen> {
             agregando: state.agregando,
             onAddToCalendar: () => bloc.add(const PlanPedido()),
           );
-    return ChatBubble(text: texto, isUser: false, child: tarjeta);
+    return ChatBubble(
+      text: texto,
+      isUser: false,
+      body: FormattedReply(texto: texto),
+      child: tarjeta,
+    );
   }
 }
 

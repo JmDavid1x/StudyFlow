@@ -91,8 +91,9 @@ class AssistantBloc extends Bloc<AssistantEvent, AssistantState> {
     PreguntaEnviada event,
     Emitter<AssistantState> emit,
   ) async {
+    // Mientras piensa no se acepta otra pregunta (envío doble).
     if (event.texto.trim().isEmpty || state.enviando) return;
-    emit(state.copyWith(enviando: true));
+    emit(state.copyWith(enviando: true, preguntaPendiente: event.texto.trim()));
     try {
       final respuesta = await _enviar(event.texto, state.limite);
       final mensajes = [

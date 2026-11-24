@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
@@ -9,6 +10,8 @@ import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 import 'package:studyflow/features/profile/domain/usecases/cargar_perfil.dart';
 import 'package:studyflow/features/profile/ui/bloc/profile_cubit.dart';
 import 'package:studyflow/features/profile/ui/widgets/profile_link_tile.dart';
+import 'package:studyflow/features/subscription/domain/planes_plus.dart';
+import 'package:studyflow/features/subscription/ui/widgets/plus_activo_card.dart';
 
 /// Pestaña Perfil (Figma 25). La barra inferior la pone MainShell, que la
 /// crea con `const ProfileScreen()`; por eso el Cubit (de GetIt) se crea aquí adentro.
@@ -92,9 +95,7 @@ class _ProfileView extends StatelessWidget {
                           ProfileLinkTile(
                             icon: Icons.auto_awesome_outlined,
                             title: 'StudyFlow Plus',
-                            subtitle: resumen.esPlus
-                                ? 'Ya tienes Plus'
-                                : 'Consultas ilimitadas al asistente',
+                            subtitle: _subtituloPlus(resumen),
                             onTap: () => _push(context, AppRoutes.plus),
                           ),
                           const SizedBox(height: SfSpacing.xl),
@@ -119,6 +120,18 @@ class _ProfileView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "Prueba activa: te quedan 5 días de prueba", "Ya tienes Plus" o la oferta.
+String _subtituloPlus(ResumenPerfil resumen) {
+  final suscripcion = resumen.suscripcion;
+  if (!resumen.esPlus || suscripcion == null) {
+    return 'Consultas ilimitadas al asistente';
+  }
+  if (suscripcion.estado == EstadoSuscripcion.enPrueba) {
+    return 'Prueba activa: ${textoDiasDePrueba(diasRestantesDePrueba(suscripcion, DateTime.now())).toLowerCase()}';
+  }
+  return 'Ya tienes Plus';
 }
 
 /// Inicial, nombre, correo, universidad y periodo activo.
@@ -180,7 +193,11 @@ class _PlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final limite = resumen.limite;
-    final pruebaHasta = resumen.suscripcion?.pruebaHasta;
+    final suscripcion = resumen.suscripcion;
+    // Con la prueba o Plus activo se muestra eso, no la oferta.
+    if (resumen.esPlus && suscripcion != null) {
+      return PlusActivoCard(suscripcion: suscripcion);
+    }
     return SfCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,32 +205,16 @@ class _PlanCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text('Plan actual', style: SfTypography.title)),
-              SfBadge(
-                label: resumen.esPlus ? 'StudyFlow Plus' : 'Plan gratis',
-                tone: SfTone.primary,
-              ),
+              const SfBadge(label: 'Plan gratis', tone: SfTone.primary),
             ],
           ),
           const SizedBox(height: SfSpacing.sm),
-          if (resumen.esPlus)
-            Text(
-              pruebaHasta == null
-                  ? 'Consultas ilimitadas al asistente.'
-                  : 'Consultas ilimitadas. Tu prueba gratis va hasta el ${sfFormatDate(pruebaHasta)}.',
-              style: SfTypography.caption.copyWith(
-                color: SfColors.textSecondary,
-              ),
-            )
-          else ...[
-            SfProgressBar(value: limite.progreso),
-            const SizedBox(height: SfSpacing.xs),
-            Text(
-              '${limite.usadas} de $consultasGratisPorSemana consultas gratis al asistente esta semana',
-              style: SfTypography.caption.copyWith(
-                color: SfColors.textSecondary,
-              ),
-            ),
-          ],
+          SfProgressBar(value: limite.progreso),
+          const SizedBox(height: SfSpacing.xs),
+          Text(
+            '${limite.usadas} de $consultasGratisPorSemana consultas gratis al asistente esta semana',
+            style: SfTypography.caption.copyWith(color: SfColors.textSecondary),
+          ),
         ],
       ),
     );
