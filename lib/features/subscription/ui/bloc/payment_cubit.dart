@@ -63,7 +63,8 @@ class PaymentCubit extends Cubit<PaymentState> {
   PaymentCubit(
     SubscriptionRepository repositorio, {
     required Periodicidad periodicidad,
-  }) : _iniciar = IniciarPrueba(repositorio),
+    IniciarPrueba? iniciar,
+  }) : _iniciar = iniciar ?? IniciarPrueba(repositorio),
        super(PaymentState(periodicidad: periodicidad));
 
   final IniciarPrueba _iniciar;

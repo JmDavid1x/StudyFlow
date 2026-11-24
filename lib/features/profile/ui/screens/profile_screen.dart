@@ -2,28 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
 import 'package:studyflow/features/assistant/domain/limite_consultas.dart';
 import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
-import 'package:studyflow/features/profile/data/profile_repository_impl.dart';
 import 'package:studyflow/features/profile/domain/usecases/cargar_perfil.dart';
 import 'package:studyflow/features/profile/ui/bloc/profile_cubit.dart';
 import 'package:studyflow/features/profile/ui/widgets/profile_link_tile.dart';
-import 'package:studyflow/features/subscription/data/subscription_repository_impl.dart';
 
 /// Pestaña Perfil (Figma 25). La barra inferior la pone MainShell, que la
-/// crea con `const ProfileScreen()`; por eso el Cubit se crea aquí adentro.
+/// crea con `const ProfileScreen()`; por eso el Cubit (de GetIt) se crea aquí adentro.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ProfileCubit(
-        ProfileRepositoryImpl(supabase),
-        SubscriptionRepositoryImpl(supabase),
-      )..cargar(),
+      create: (_) => sl<ProfileCubit>()..cargar(),
       child: const _ProfileView(),
     );
   }

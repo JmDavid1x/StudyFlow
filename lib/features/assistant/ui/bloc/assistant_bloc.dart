@@ -17,13 +17,17 @@ part 'assistant_state.dart';
 /// consultas, el orden sugerido y "Agregar al plan". Se crea en
 /// assistant_routes.dart.
 class AssistantBloc extends Bloc<AssistantEvent, AssistantState> {
+  /// Los casos de uso llegan de GetIt (assistant_di.dart); si no se pasan
+  /// (en los tests), se arman con el repositorio.
   AssistantBloc(
     this._repositorio,
     this._suscripciones, {
+    EnviarPregunta? enviar,
+    AgregarAlPlan? agregar,
     DateTime Function()? reloj,
   }) : _reloj = reloj ?? DateTime.now,
-       _enviar = EnviarPregunta(_repositorio, reloj: reloj),
-       _agregar = AgregarAlPlan(_repositorio, reloj: reloj),
+       _enviar = enviar ?? EnviarPregunta(_repositorio, reloj: reloj),
+       _agregar = agregar ?? AgregarAlPlan(_repositorio, reloj: reloj),
        super(const AssistantState()) {
     on<AsistenteIniciado>(_onIniciado);
     on<PreguntaEnviada>(_onPregunta);
