@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/subjects/data/subjects_repository_impl.dart';
 import 'package:studyflow/features/subjects/ui/bloc/subject_detail_cubit.dart';
 import 'package:studyflow/features/subjects/ui/bloc/subject_detail_state.dart';
 import 'package:studyflow/features/subjects/ui/widgets/formato_materias.dart';
@@ -26,8 +25,7 @@ class SubjectDetailScreen extends StatelessWidget {
 
     return BlocProvider(
       create: (_) =>
-          SubjectDetailCubit(SubjectsRepositoryImpl(supabase), materia: materia)
-            ..cargar(),
+          sl<SubjectDetailCubit>(param1: materia)..cargar(),
       child: const _SubjectDetailView(),
     );
   }

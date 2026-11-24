@@ -3,10 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/subjects/data/subjects_repository_impl.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/features/subjects/domain/componentes_por_defecto.dart';
-import 'package:studyflow/features/subjects/domain/usecases/guardar_materia.dart';
 import 'package:studyflow/features/subjects/ui/bloc/new_subject_cubit.dart';
 import 'package:studyflow/features/subjects/ui/widgets/class_schedule.dart';
 import 'package:studyflow/features/subjects/ui/widgets/class_schedule_sheet.dart';
@@ -29,7 +27,7 @@ class NewSubjectScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) =>
-          NewSubjectCubit(GuardarMateria(SubjectsRepositoryImpl(supabase))),
+          sl<NewSubjectCubit>(),
       child: const _NewSubjectView(),
     );
   }

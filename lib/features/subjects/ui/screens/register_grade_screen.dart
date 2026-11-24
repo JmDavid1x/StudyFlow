@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/subjects/data/subjects_repository_impl.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/features/subjects/ui/bloc/register_grade_cubit.dart';
 import 'package:studyflow/features/subjects/ui/bloc/register_grade_state.dart';
 import 'package:studyflow/features/subjects/ui/widgets/component_selector.dart';
@@ -24,10 +23,9 @@ class RegisterGradeScreen extends StatelessWidget {
     final argumento = ModalRoute.of(context)?.settings.arguments;
 
     return BlocProvider(
-      create: (_) => RegisterGradeCubit(
-        SubjectsRepositoryImpl(supabase),
-        materia: argumento is Materia ? argumento : null,
-        actividad: argumento is Actividad ? argumento : null,
+      create: (_) => sl<RegisterGradeCubit>(
+        param1: argumento is Materia ? argumento : null,
+        param2: argumento is Actividad ? argumento : null,
       )..cargar(),
       child: const _RegisterGradeView(),
     );

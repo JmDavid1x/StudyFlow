@@ -1,17 +1,29 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/realtime/cambios_en_vivo.dart';
 import 'package:studyflow/features/assistant/domain/assistant_repository.dart';
+import 'package:studyflow/features/assistant/ui/bloc/assistant_bloc.dart';
 import 'package:studyflow/features/auth/domain/auth_repository.dart';
 import 'package:studyflow/features/auth/ui/bloc/auth_bloc.dart';
 import 'package:studyflow/features/calendar/domain/calendar_repository.dart';
 import 'package:studyflow/features/home/domain/home_repository.dart';
 import 'package:studyflow/features/profile/domain/profile_repository.dart';
+import 'package:studyflow/features/profile/ui/bloc/notification_settings_cubit.dart';
+import 'package:studyflow/features/profile/ui/bloc/profile_cubit.dart';
 import 'package:studyflow/features/study_blocks/domain/study_blocks_repository.dart';
 import 'package:studyflow/features/subjects/domain/subjects_repository.dart';
+import 'package:studyflow/features/subjects/ui/bloc/new_subject_cubit.dart';
+import 'package:studyflow/features/subjects/ui/bloc/register_grade_cubit.dart';
+import 'package:studyflow/features/subjects/ui/bloc/setup_reminders_cubit.dart';
+import 'package:studyflow/features/subjects/ui/bloc/setup_subjects_cubit.dart';
+import 'package:studyflow/features/subjects/ui/bloc/subject_detail_cubit.dart';
+import 'package:studyflow/features/subjects/ui/bloc/subjects_cubit.dart';
 import 'package:studyflow/features/subscription/domain/subscription_repository.dart';
+import 'package:studyflow/features/subscription/ui/bloc/payment_cubit.dart';
+import 'package:studyflow/features/subscription/ui/bloc/plus_cubit.dart';
 import 'package:studyflow/features/task_form/domain/task_form_repository.dart';
 import 'package:studyflow/features/tasks/domain/tasks_repository.dart';
 
@@ -48,5 +60,26 @@ void main() {
     expect(a, isNot(same(b)));
     await a.close();
     await b.close();
+  });
+
+  test('GetIt arma los Blocs y Cubits de Materias, Asistente, Perfil y Plus', () async {
+    final creados = <dynamic>[
+      sl<SubjectsCubit>(),
+      sl<SetupSubjectsCubit>(),
+      sl<SetupRemindersCubit>(),
+      sl<NewSubjectCubit>(),
+      sl<SubjectDetailCubit>(),
+      sl<RegisterGradeCubit>(),
+      sl<AssistantBloc>(),
+      sl<ProfileCubit>(),
+      sl<NotificationSettingsCubit>(),
+      sl<PlusCubit>(),
+      sl<PaymentCubit>(param1: Periodicidad.semestral),
+    ];
+    expect(creados, hasLength(11));
+    expect((creados.last as PaymentCubit).state.periodicidad, Periodicidad.semestral);
+    for (final c in creados) {
+      await c.close();
+    }
   });
 }

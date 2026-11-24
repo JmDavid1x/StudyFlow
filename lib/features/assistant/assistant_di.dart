@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 
 import 'package:studyflow/features/assistant/data/assistant_repository_impl.dart';
 import 'package:studyflow/features/assistant/domain/assistant_repository.dart';
+import 'package:studyflow/features/assistant/ui/bloc/assistant_bloc.dart';
 
 /// Dependencias de assistant (Santiago). Las llama `configurarDependencias()`
 /// (lib/core/di/inyeccion.dart) al arrancar la app.
@@ -12,4 +13,6 @@ import 'package:studyflow/features/assistant/domain/assistant_repository.dart';
 ///   sl.registerFactory(() => MiCubit(sl()));
 void registrarAssistant(GetIt sl) {
   sl.registerLazySingleton<AssistantRepository>(() => AssistantRepositoryImpl(sl()));
+  // Uno nuevo cada vez que se abre el asistente (usa también SubscriptionRepository).
+  sl.registerFactory(() => AssistantBloc(sl(), sl()));
 }
