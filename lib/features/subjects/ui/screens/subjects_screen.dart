@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/core/di/inyeccion.dart';
+import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
 import 'package:studyflow/features/subjects/ui/bloc/subjects_cubit.dart';
 import 'package:studyflow/features/subjects/ui/bloc/subjects_state.dart';
@@ -21,7 +22,15 @@ class SubjectsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<SubjectsCubit>()..cargar(),
-      child: const _SubjectsView(),
+      // Si cambian materias o notas (aquí o desde otro dispositivo), la pestaña se actualiza sola.
+      child: Builder(
+        builder: (context) => RecargarEnVivo(
+          tablas: const {'materias', 'calificaciones'},
+          alCambiar: () =>
+              context.read<SubjectsCubit>().cargar(mostrarCargando: false),
+          child: const _SubjectsView(),
+        ),
+      ),
     );
   }
 }
