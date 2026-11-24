@@ -3,9 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/data/data.dart';
 import 'package:studyflow/core/design_system/design_system.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/calendar/data/calendar_repository_impl.dart';
-import 'package:studyflow/features/study_blocks/data/study_blocks_repository_impl.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/features/study_blocks/ui/bloc/new_study_block_cubit.dart';
 
 /// Nuevo bloque de estudio (Figma 28). Se elige la tarea que se va a
@@ -20,10 +18,8 @@ class NewStudyBlockScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
     return BlocProvider(
-      create: (_) => NewStudyBlockCubit(
-        StudyBlocksRepositoryImpl(supabase),
-        CalendarRepositoryImpl(supabase),
-      )..cargar(),
+      // El Cubit sale de GetIt (study_blocks_di.dart).
+      create: (_) => sl<NewStudyBlockCubit>()..cargar(),
       child: _NewStudyBlockView(
         actividadInicial: args is Actividad ? args : null,
         reprogramar: args is BloqueEstudio ? args : null,

@@ -58,7 +58,10 @@ void main() {
       () => repositorio.crearActividad(any()),
     ).thenAnswer((i) async => i.positionalArguments.first as Actividad);
     when(
-      () => repositorio.editarActividad(any()),
+      () => repositorio.editarActividad(
+        any(),
+        cambiarEstado: any(named: 'cambiarEstado'),
+      ),
     ).thenAnswer((i) async => i.positionalArguments.first as Actividad);
   });
 
@@ -112,7 +115,12 @@ void main() {
       ],
       verify: (_) {
         verify(() => repositorio.crearActividad(any())).called(1);
-        verifyNever(() => repositorio.editarActividad(any()));
+        verifyNever(
+          () => repositorio.editarActividad(
+            any(),
+            cambiarEstado: any(named: 'cambiarEstado'),
+          ),
+        );
       },
     );
 
@@ -137,7 +145,12 @@ void main() {
               EstadoActividad.enProgreso,
             ),
       ],
-      verify: (_) => verify(() => repositorio.editarActividad(any())).called(1),
+      verify: (_) => verify(
+        () => repositorio.editarActividad(
+          any(),
+          cambiarEstado: any(named: 'cambiarEstado'),
+        ),
+      ).called(1),
     );
 
     blocTest<TaskFormCubit, TaskFormState>(

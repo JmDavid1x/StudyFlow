@@ -21,6 +21,12 @@ abstract class TaskFormRepository {
   /// Guarda una actividad nueva y la devuelve con su id y su materia.
   Future<Actividad> crearActividad(Actividad actividad);
 
-  /// Guarda los cambios de una actividad que ya existe.
-  Future<Actividad> editarActividad(Actividad actividad);
+  /// Guarda los cambios de una actividad que ya existe. No reenvía el estado
+  /// (lo maneja Inicio al marcarla) ni completada_en (lo pone la base), salvo
+  /// [cambiarEstado]: cuando pasa de examen a tarea o al revés, el estado que
+  /// tenía ya no vale para el nuevo tipo y hay que mandarlo.
+  Future<Actividad> editarActividad(
+    Actividad actividad, {
+    required bool cambiarEstado,
+  });
 }

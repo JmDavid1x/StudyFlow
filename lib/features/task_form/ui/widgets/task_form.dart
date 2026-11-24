@@ -5,7 +5,6 @@ import 'package:studyflow/core/design_system/design_system.dart';
 import 'package:studyflow/features/task_form/domain/porcentaje_componente.dart';
 import 'package:studyflow/features/task_form/domain/task_form_repository.dart';
 import 'package:studyflow/features/task_form/ui/widgets/grade_part_selector.dart';
-import 'package:studyflow/features/task_form/ui/widgets/percent_stepper.dart';
 import 'package:studyflow/features/task_form/ui/widgets/task_form_data.dart';
 
 /// Formulario de tarea. Lo usan Nueva tarea (Figma 14), vacío, y Editar
@@ -55,12 +54,15 @@ class _TaskFormState extends State<TaskForm> {
   late final _title = TextEditingController(text: widget.initial.title);
   late final _place = TextEditingController(text: widget.initial.place);
   late final _notes = TextEditingController(text: widget.initial.notes);
+  late final _porcentajeTexto = TextEditingController(
+    text: textoPorcentaje(widget.initial.porcentaje),
+  );
   late Materia? _materia = widget.initial.materia;
   late ComponenteNota? _componente = widget.initial.componente;
   late TipoActividad _tipo = widget.initial.tipo;
   late DateTime? _date = widget.initial.date;
   late TimeOfDay? _time = widget.initial.time;
-  late int _porcentaje = widget.initial.porcentaje;
+  late double _porcentaje = widget.initial.porcentaje;
   late Prioridad _prioridad = widget.initial.prioridad;
   late CanalEntrega? _canal = widget.initial.canal;
   late bool _reminder = widget.initial.reminder;
@@ -73,19 +75,37 @@ class _TaskFormState extends State<TaskForm> {
     _title.dispose();
     _place.dispose();
     _notes.dispose();
+    _porcentajeTexto.dispose();
     super.dispose();
   }
 
   bool get _isExam => _tipo == TipoActividad.examen;
 
-  /// Lo que le queda libre a la parte de la nota elegida.
-  int get _restante => _componente == null
+  /// Lo que le queda libre a la parte de la nota elegida (con decimales).
+  double get _restante => _componente == null
       ? 100
       : porcentajeRestante(
           _componente!,
           widget.asignados,
           sinContar: widget.editingId,
-        ).floor();
+        );
+
+  /// El valor escrito, o null si no es un número válido (ej.: "12,5").
+  double? get _porcentajeEscrito => leerPorcentaje(_porcentajeTexto.text);
+
+  /// Error del campo "Valor en la nota", o null si está bien.
+  String? get _errorPorcentaje {
+    final valor = _porcentajeEscrito;
+    final restante = _restante;
+    if (valor == null || valor > restante + 0.001) {
+      return 'Escribe de 0 a ${textoPorcentaje(restante)} (ej.: 12,5)';
+    }
+    return null;
+  }
+
+  void _cambiarPorcentaje(String texto) {
+    setState(() => _porcentaje = leerPorcentaje(texto) ?? _porcentaje);
+  }
 
   Future<void> _pickDate() async {
     final picked = await sfPickDate(context, initial: _date);
@@ -110,7 +130,10 @@ class _TaskFormState extends State<TaskForm> {
     setState(() {
       _componente = componente;
       // El valor de la tarea no puede pasar lo que le queda a esa parte.
-      if (_porcentaje > _restante) _porcentaje = _restante;
+      if (_porcentaje > _restante) {
+        _porcentaje = _restante;
+        _porcentajeTexto.text = textoPorcentaje(_restante);
+      }
     });
   }
 
@@ -121,6 +144,7 @@ class _TaskFormState extends State<TaskForm> {
         _materia == null ||
         _componente == null ||
         _date == null ||
+        _errorPorcentaje != null ||
         (!_isExam && _canal == null);
     if (falta) return;
 
@@ -132,7 +156,7 @@ class _TaskFormState extends State<TaskForm> {
         tipo: _tipo,
         date: _date,
         time: _time,
-        porcentaje: _porcentaje,
+        porcentaje: _porcentajeEscrito!,
         prioridad: _prioridad,
         canal: _isExam ? null : _canal,
         place: _isExam ? _place.text.trim() : '',
@@ -242,12 +266,16 @@ class _TaskFormState extends State<TaskForm> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const _FieldLabel('Valor en la nota'),
-                          PercentStepper(
-                            value: _porcentaje,
-                            min: 0,
-                            max: restante,
-                            onChanged: (value) =>
-                                setState(() => _porcentaje = value),
+                          SfTextField(
+                            hint: 'Ej.: 12,5',
+                            icon: Icons.percent,
+                            controller: _porcentajeTexto,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            textInputAction: TextInputAction.done,
+                            errorText: _errorPorcentaje,
+                            onChanged: _cambiarPorcentaje,
                           ),
                         ],
                       ),
@@ -271,12 +299,12 @@ class _TaskFormState extends State<TaskForm> {
                     ),
                   ],
                 ),
-                if (_componente != null) ...[
+                if (_componente != null && _errorPorcentaje == null) ...[
                   const SizedBox(height: SfSpacing.xs),
                   Text(
-                    '${_componente!.nombre} vale ${_componente!.porcentaje.round()} %: '
-                    'esta tarea usa $_porcentaje % y quedan '
-                    '${restante - _porcentaje} % sin asignar.',
+                    '${_componente!.nombre} vale ${textoPorcentaje(_componente!.porcentaje)} %: '
+                    'esta tarea usa ${textoPorcentaje(_porcentaje)} % y quedan '
+                    '${textoPorcentaje(restante - _porcentaje)} % sin asignar.',
                     style: SfTypography.caption.copyWith(
                       color: SfColors.success,
                     ),

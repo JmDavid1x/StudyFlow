@@ -88,7 +88,7 @@ class TaskFormData {
         actividad.fechaLimite.day,
       ),
       time: TimeOfDay.fromDateTime(actividad.fechaLimite),
-      porcentaje: actividad.porcentaje.round(),
+      porcentaje: actividad.porcentaje,
       prioridad: actividad.prioridad,
       canal: actividad.canalEntrega,
       place: actividad.lugar ?? '',
@@ -109,8 +109,9 @@ class TaskFormData {
   final DateTime? date;
   final TimeOfDay? time;
 
-  /// Porcentaje de la nota que vale esta actividad (15 = 15 %).
-  final int porcentaje;
+  /// Porcentaje de la nota que vale esta actividad (12.5 = 12,5 %). Puede
+  /// tener decimales: no se redondea.
+  final double porcentaje;
   final Prioridad prioridad;
 
   /// Canal de entrega. Solo aplica si no es examen.
@@ -139,7 +140,7 @@ class TaskFormData {
         hora.hour,
         hora.minute,
       ),
-      porcentaje: porcentaje.toDouble(),
+      porcentaje: porcentaje,
       prioridad: prioridad,
       estado: original?.estado ?? EstadoActividad.porHacer,
       recordatorio: reminder,
