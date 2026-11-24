@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/subjects/data/subjects_repository_impl.dart';
-import 'package:studyflow/features/subjects/domain/usecases/terminar_configuracion.dart';
 import 'package:studyflow/features/subjects/ui/bloc/setup_reminders_cubit.dart';
 import 'package:studyflow/features/subjects/ui/widgets/reminder_preview_card.dart';
 
@@ -19,9 +17,7 @@ class SetupRemindersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => SetupRemindersCubit(
-        TerminarConfiguracion(SubjectsRepositoryImpl(supabase)),
-      ),
+      create: (_) => sl<SetupRemindersCubit>(),
       child: const _SetupRemindersView(),
     );
   }

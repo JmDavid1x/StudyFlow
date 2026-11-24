@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:studyflow/core/design_system/design_system.dart';
+import 'package:studyflow/core/di/inyeccion.dart';
+import 'package:studyflow/core/realtime/recargar_en_vivo.dart';
 import 'package:studyflow/core/navigation/app_routes.dart';
-import 'package:studyflow/core/supabase/supabase_x.dart';
-import 'package:studyflow/features/subjects/data/subjects_repository_impl.dart';
-import 'package:studyflow/features/subjects/domain/usecases/obtener_resumen_semestre.dart';
 import 'package:studyflow/features/subjects/ui/bloc/subjects_cubit.dart';
 import 'package:studyflow/features/subjects/ui/bloc/subjects_state.dart';
 import 'package:studyflow/features/subjects/ui/widgets/dashed_add_button.dart';
@@ -22,10 +21,16 @@ class SubjectsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => SubjectsCubit(
-        ObtenerResumenSemestre(SubjectsRepositoryImpl(supabase)),
-      )..cargar(),
-      child: const _SubjectsView(),
+      create: (_) => sl<SubjectsCubit>()..cargar(),
+      // Si cambian materias o notas (aquí o desde otro dispositivo), la pestaña se actualiza sola.
+      child: Builder(
+        builder: (context) => RecargarEnVivo(
+          tablas: const {'materias', 'calificaciones'},
+          alCambiar: () =>
+              context.read<SubjectsCubit>().cargar(mostrarCargando: false),
+          child: const _SubjectsView(),
+        ),
+      ),
     );
   }
 }
