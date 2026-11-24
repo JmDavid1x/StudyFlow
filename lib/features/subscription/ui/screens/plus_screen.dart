@@ -9,6 +9,7 @@ import 'package:studyflow/features/subscription/domain/planes_plus.dart';
 import 'package:studyflow/features/subscription/ui/bloc/plus_cubit.dart';
 import 'package:studyflow/features/subscription/ui/widgets/plan_comparison_table.dart';
 import 'package:studyflow/features/subscription/ui/widgets/plan_texts.dart';
+import 'package:studyflow/features/subscription/ui/widgets/plus_activo_card.dart';
 
 /// StudyFlow Plus (Figma 30). Compara los planes y deja elegir Mensual o
 /// Semestre antes de ir al pago. El Cubit se crea en subscription_routes.dart.
@@ -73,7 +74,6 @@ class _PlusContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final periodicidad = state.periodicidad;
-    final pruebaHasta = state.suscripcion?.pruebaHasta;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         SfSpacing.screen,
@@ -84,7 +84,12 @@ class _PlusContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Pregúntale al asistente sin límite', style: SfTypography.h1),
+          Text(
+            state.esPlus
+                ? 'Ya tienes StudyFlow Plus'
+                : 'Pregúntale al asistente sin límite',
+            style: SfTypography.h1,
+          ),
           const SizedBox(height: SfSpacing.xs),
           Text(
             'Con Plus tienes consultas ilimitadas a la IA para ordenar tus tareas y armar tu plan de estudio.',
@@ -95,16 +100,9 @@ class _PlusContent extends StatelessWidget {
           const SizedBox(height: SfSpacing.lg),
           _UsageCard(limite: state.limite),
           const SizedBox(height: SfSpacing.lg),
-          if (state.esPlus) ...[
-            SfCard(
-              highlighted: true,
-              child: Text(
-                pruebaHasta == null
-                    ? 'Ya tienes StudyFlow Plus.'
-                    : 'Ya tienes StudyFlow Plus. Tu prueba gratis va hasta el ${sfFormatDate(pruebaHasta)}.',
-                style: SfTypography.bodyStrong,
-              ),
-            ),
+          if (state.esPlus && state.suscripcion != null) ...[
+            // Ya tiene la prueba o Plus: se muestra eso en vez de ofrecerla.
+            PlusActivoCard(suscripcion: state.suscripcion!),
             const SizedBox(height: SfSpacing.lg),
             SfButton(
               label: 'Volver',

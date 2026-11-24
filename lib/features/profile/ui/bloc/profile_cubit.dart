@@ -43,8 +43,9 @@ class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit(
     ProfileRepository perfiles,
     SubscriptionRepository suscripciones, {
+    CargarPerfil? cargar,
     DateTime Function()? reloj,
-  }) : _cargar = CargarPerfil(perfiles, suscripciones),
+  }) : _cargar = cargar ?? CargarPerfil(perfiles, suscripciones),
        _reloj = reloj ?? DateTime.now,
        super(const ProfileState());
 

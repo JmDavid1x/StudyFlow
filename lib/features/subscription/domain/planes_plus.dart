@@ -37,6 +37,29 @@ String formatoCop(int pesos) {
   return 'COP ${grupos.join('.')}';
 }
 
+/// Días que le quedan a la prueba gratis contando hoy (0 si ya terminó o
+/// la suscripción no está en prueba).
+int diasRestantesDePrueba(Suscripcion suscripcion, DateTime hoy) {
+  final hasta = suscripcion.pruebaHasta;
+  if (suscripcion.estado != EstadoSuscripcion.enPrueba || hasta == null) {
+    return 0;
+  }
+  final dia = DateTime(hoy.year, hoy.month, hoy.day);
+  final dias =
+      (DateTime(hasta.year, hasta.month, hasta.day).difference(dia).inHours /
+              24)
+          .round();
+  return dias < 0 ? 0 : dias;
+}
+
+/// "Te queda 1 día de prueba" o "Te quedan 5 días de prueba".
+String textoDiasDePrueba(int dias) {
+  if (dias <= 0) return 'Tu prueba gratis termina hoy';
+  return dias == 1
+      ? 'Te queda 1 día de prueba'
+      : 'Te quedan $dias días de prueba';
+}
+
 /// Último día de la prueba y día del primer cobro: hoy + 7.
 DateTime finDePrueba(DateTime hoy) =>
     DateTime(hoy.year, hoy.month, hoy.day + diasDePrueba);

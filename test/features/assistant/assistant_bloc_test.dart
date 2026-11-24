@@ -294,4 +294,104 @@ void main() {
       expect: () => <AssistantState>[],
     );
   });
+
+  group('con la IA (Sprint 3)', () {
+    blocTest<AssistantBloc, AssistantState>(
+      'mientras la IA responde queda "pensando" con la pregunta en pantalla',
+      setUp: () => when(
+        () => repo.responderConIA(any(), any()),
+      ).thenAnswer((_) async => '1. **Taller 3** hoy\n2. Parcial 2'),
+      build: crear,
+      seed: () => const AssistantState(estado: EstadoAsistente.listo),
+      act: (bloc) => bloc.add(const PreguntaEnviada('  ¿Qué hago hoy?  ')),
+      expect: () => [
+        isA<AssistantState>()
+            .having((s) => s.enviando, 'pensando', isTrue)
+            .having((s) => s.preguntaPendiente, 'pregunta', '¿Qué hago hoy?')
+            .having((s) => s.mensajes, 'aún sin guardar', isEmpty),
+        isA<AssistantState>()
+            .having((s) => s.enviando, 'pensando', isFalse)
+            .having((s) => s.preguntaPendiente, 'pregunta', isNull)
+            .having((s) => s.mensajes.length, 'mensajes', 2),
+      ],
+    );
+
+    blocTest<AssistantBloc, AssistantState>(
+      'guarda la respuesta de la IA (no es respaldo) y el contador sube',
+      setUp: () => when(
+        () => repo.responderConIA(any(), any()),
+      ).thenAnswer((_) async => '1. **Taller 3** hoy\n2. Parcial 2'),
+      build: crear,
+      seed: () => const AssistantState(
+        estado: EstadoAsistente.listo,
+        limite: LimiteConsultas(usadas: 0, esPlus: false),
+      ),
+      act: (bloc) => bloc.add(const PreguntaEnviada('¿Qué hago hoy?')),
+      skip: 1,
+      expect: () => [
+        isA<AssistantState>()
+            .having(
+              (s) => s.mensajes.last.contenido,
+              'respuesta',
+              '1. **Taller 3** hoy\n2. Parcial 2',
+            )
+            .having((s) => s.mensajes.last.usadoRespaldo, 'respaldo', isFalse)
+            .having((s) => s.limite.etiqueta, 'contador', '1 de 5 gratis')
+            .having((s) => s.orden, 'orden para el plan', isNotNull),
+      ],
+    );
+
+    blocTest<AssistantBloc, AssistantState>(
+      'con Plus el contador dice "Plus" aunque responda la IA',
+      setUp: () => when(
+        () => repo.responderConIA(any(), any()),
+      ).thenAnswer((_) async => 'Empieza por el taller.'),
+      build: crear,
+      seed: () => const AssistantState(
+        estado: EstadoAsistente.listo,
+        limite: LimiteConsultas(usadas: 0, esPlus: true),
+      ),
+      act: (bloc) => bloc.add(const PreguntaEnviada('¿Qué hago hoy?')),
+      skip: 1,
+      expect: () => [
+        isA<AssistantState>().having(
+          (s) => s.limite.etiqueta,
+          'contador',
+          'Plus',
+        ),
+      ],
+    );
+
+    blocTest<AssistantBloc, AssistantState>(
+      'mientras piensa no acepta otra pregunta (envío doble)',
+      setUp: () =>
+          when(() => repo.responderConIA(any(), any())).thenAnswer((_) async {
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+            return 'Listo.';
+          }),
+      build: crear,
+      seed: () => const AssistantState(estado: EstadoAsistente.listo),
+      act: (bloc) {
+        bloc
+          ..add(const PreguntaEnviada('Primera'))
+          ..add(const PreguntaEnviada('Segunda'));
+      },
+      wait: const Duration(milliseconds: 100),
+      skip: 1,
+      expect: () => [
+        isA<AssistantState>().having(
+          (s) => s.mensajes.map((m) => m.contenido).toList(),
+          'mensajes',
+          ['Primera', 'Listo.'],
+        ),
+      ],
+      verify: (_) => verify(
+        () => repo.enviarMensaje(
+          rol: RolMensaje.usuario,
+          contenido: any(named: 'contenido'),
+          usadoRespaldo: any(named: 'usadoRespaldo'),
+        ),
+      ).called(1),
+    );
+  });
 }

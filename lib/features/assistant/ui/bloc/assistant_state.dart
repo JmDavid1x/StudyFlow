@@ -11,6 +11,7 @@ class AssistantState extends Equatable {
     this.orden,
     this.respuestaId,
     this.enviando = false,
+    this.preguntaPendiente,
     this.agregando = false,
     this.planAgregado,
     this.planId = 0,
@@ -33,8 +34,13 @@ class AssistantState extends Equatable {
   /// Id del mensaje del asistente que lleva ese orden debajo.
   final String? respuestaId;
 
-  /// Esperando la respuesta (se desactiva enviar).
+  /// "Pensando": esperando la respuesta de la IA (puede tardar hasta 20 s).
+  /// Mientras tanto se desactiva enviar, para no mandar la pregunta dos veces.
   final bool enviando;
+
+  /// La pregunta que se acaba de enviar, para mostrarla mientras el
+  /// asistente piensa. Se borra sola cuando [enviando] vuelve a false.
+  final String? preguntaPendiente;
 
   /// Creando el plan y sus bloques.
   final bool agregando;
@@ -73,6 +79,7 @@ class AssistantState extends Equatable {
     List<ItemOrden>? orden,
     String? respuestaId,
     bool? enviando,
+    String? preguntaPendiente,
     bool? agregando,
     PlanAgregado? planAgregado,
     int? planId,
@@ -86,6 +93,9 @@ class AssistantState extends Equatable {
     orden: orden ?? this.orden,
     respuestaId: respuestaId ?? this.respuestaId,
     enviando: enviando ?? this.enviando,
+    preguntaPendiente: (enviando ?? this.enviando)
+        ? preguntaPendiente ?? this.preguntaPendiente
+        : null,
     agregando: agregando ?? this.agregando,
     planAgregado: planAgregado ?? this.planAgregado,
     planId: planId ?? this.planId,
@@ -102,6 +112,7 @@ class AssistantState extends Equatable {
     orden,
     respuestaId,
     enviando,
+    preguntaPendiente,
     agregando,
     planId,
     mensaje,
